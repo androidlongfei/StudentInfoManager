@@ -1,0 +1,237 @@
+A. 打Docker：
+后台和前台打Docker的方法如下：
+1. 运行grunt
+2. 拷贝package.json，Dockerfile 和 dist目录到装有Docker环境的机器上（如果你本地安装了Docker则不用拷贝到远程）
+3. 在Dockerfile所在目录
+3. 1 如果是Backend运行docker build -t geneserver .
+3. 2 如果是Frontend运行docker build -t geneweb .
+
+注：后台打Docker之前首先要git pull确保是最新代码，然后一定要检查dist/GenePlatform/apps/目录和所有子目录下的sh文件是否有执行权限，没有需要运行sudo chmod +x XXX.sh
+
+GeneFileManager打Docker的方法如下：
+1. 直接拷贝整个文件夹到装有Docker环境的机器上（如果你本地安装了Docker则不用拷贝到远程）
+2. 在Dockerfile所在目录运行docker build -t genefm .
+
+B. 打完后导出到tar包：
+1. docker save -o geneweb.tar geneweb
+2. docker save -o geneserver.tar geneserver
+3. docker save -o genefm.tar genefm
+3. docker save -o genedb.tar genedb 
+(docker save -o genedb.tar tutum/mongodb)
+
+C. 然后拷贝到目标部署机器，依次载入：
+1. docker load -i geneweb.tar
+2. docker load -i geneserver.tar
+3. docker load -i genefm.tar
+
+D. 载入完成后运行，运行的命令如下：
+数据库：docker run -d -v /opt/mongodb:/data/db -p 27017:27017 --name genedb tutum/mongodb mongod
+文件浏览器：docker run -d -v /data:/data -p 8888:80 genefm
+后台：docker run -d -v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock -v /usr/lib:/usr/lib/ -v /data:/data -p 3031:3031 --link genedb:dbhost geneserver node server.js
+前台：docker run -it -p 80:80 geneweb
+
+备注:--link genedb:dbhost 是将当前容器(geneserver)接到genedb容器，并将genedb容器重命名为dbhost。这样，geneserver容器就可以使用dbhost的相关的环境变量了
+
+
+E. 清理垃圾
+如果你想删除所有停止运行的容器，用这个命令：
+docker rm $(docker ps -a -q)
+
+F.如果docker images镜像意外停止,通过以下命令可以重启
+docker ps -a 获取需要重启的containId
+docker start containId
+
+
+
+
+（以前端为例子）
+第一种
+在本机电脑上打包image,然后load到部署的机器上
+1.进入到Dockerfile所在目录,执行以下命令ls
+docker build -t geneweb ./
+备注：将当前目录打包成名字为geneweb的image
+2.将image导出为tar包
+docker save -o geneweb.tar geneweb
+3.将生成的tar（geneweb）包,拷贝到部署服务器上
+scp...
+4.在部署服务器上load tar包
+通过docker ps | grep gene命令，检测image(geneweb)是否正在运行中，
+如果正在运行中则通过以下命令停止它：
+docker stop 03c090f98471
+备注03c090f98471:为geneweb的CONTAINER ID,（此命令docker ps | grep gene可以获取到geneweb的CONTAINER ID）
+
+然后通过以下命令删除它：
+docker images (显示docker中的所有images,然后找出geneweb的image IMAGE ID)
+docker rmi -f f9de9e482e3c
+备注:f9de9e482e3c为geneweb的IMAGE ID。
+-f:是强制删除
+
+最后load新的geneweb
+docker load -i geneweb.tar
+
+注意：如果docker load出错或者无法load需要清除docker缓存，使用以下命令：
+/etc/init.d/mh-geneos stop
+/etc/init.d/mh-geneos start
+然后再load
+
+5.启动geneweb
+docker run -it -p 80:80 geneweb
+备注:-p 80:80 是将部署机器上的80端口映射到docker images到的80端口
+
+第二种在部署机器上
+1.检测是否正在运行images,如果正在运行，则做以下操作
+docker ps | grep gene
+docker stop 03c090f98471
+
+2.进入到Dockerfile所在目录,执行以下命令
+docker build -t geneweb ./
+如果存在旧的就会覆盖掉
+
+3.运行
+docker run -it -p 80:80 geneweb (会在终端打log)
+
+docker run -d -p 80:80 geneweb (启动服务)
+
+
+4.检测是否已经启动成功
+docker ps | grep gene
+
+5.将tar包保存在192.168.5.61/data/SAVE_DOCKER
+
+查找指定的进程
+ps aux | grep node
+
+查找指定的端口
+netstat -anp | grep 3031
+
+远程重启服务器
+sudo init 6
+
+7.重启docker image
+sudo service mh-geneos restart
+
+8.
+进入到 /etc/init.d
+cd /etc/init.d
+执行以下命令
+sudo update-rc.d server-name defaults
+备注:server-name是需要增加进服务的脚本文件名字
+
+9.进入到指定docker image content中
+docker exec -it 2bccb6370ba5 bash
+备注：2bccb6370ba5是image content的id
+
+10.查看docker images log
+docker logs -f 2bccb6370ba5
+备注:2bccb6370ba5 是image的id
+
+
+########################36机器上
+docker run -i -t -v {inputDir}:/var/www/input -v {outputDir}:{outputDir} -v /data:/data weixuan/report:v1
+
+{inputDir}:是data.json文件所在的目录
+data.json:是根据应用的表格或者图片所生成的json文件,用来生产应用报告
+data.json的绝对路径是:{configDir}/data.json
+
+{outputDir}:报告的输出目录
+
+/data:是data.json文件中图片或者表格的顶级目录
+
+
+
+########################################
+mac os 本机测试
+docker run -d -v /geneos_test:/data/db -p 27017:27017 --name genedb tutum/mongodb mongod
+docker run -i -t -v /geneos_test:/geneos_test -p 3031:3031 --link genedb:dbhost geneserver node server.js
+
+
+#######################################
+本地文件管理器run命令:
+
+
+http://192.168.6.4:8889/php/connector.rootPath.php?rootPath=/nas/rawdata
+
+######################################
+进入到docker容器里面:
+docker exec -it <containerid> /bin/sh
+
+
+######################################
+设置chronos时区:
+1.启动chronos镜像,会生成一个容器id:
+docker run -d -p 4400:8080 tomaskral/chronos --master zk://192.168.99.100:2181/mesos --zk_hosts zk://192.168.99.100:2181
+2.根据容器id进入到容器里面:
+docker exec -it <containerid> /bin/sh
+3.设置时区:
+cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+4.保存镜像:
+docker commit 9a83fe77f537 tomaskral/chronos:CST
+5.启动新镜像
+docker run -d -p 4400:8080 tomaskral/chronos:CST --master zk://192.168.99.100:2181/mesos --zk_hosts zk://192.168.99.100:2181
+
+
+####################################
+ubuntu14.04下安装curl
+1.更新系统软件
+apt-get update
+
+2.安装curl
+sudo apt-get install curl libcurl3 libcurl3-dev php5-curl
+
+四.docker错误修复:
+
+1.客户端与服务端版本不一样:
+执行docker命令(如docker images)时报以下错误:
+Error response from daemon: client is newer than server (client API version: 1.23, server API version: 1.22)
+执行以下命令进行修复:
+docker-machine upgrade
+此命令会升级docker服务端的版本，直到与客户端版本一致,然后重启虚拟机。
+
+2.docker无法启动
+执行docker命令(如docker ps)时报一下错误:
+Cannot connect to the Docker daemon. Is the docker daemon running on this host?
+这是因为docker没有启动(可以检测是否有/var/run/docker.sock文件,没有就是没有启动),执行一下命令启动docker:
+1).docker -d (会生成/var/run/docker.sock文件)
+2).sudo chmod 777 /var/run/docker.sock (修改文件的权限)
+3).docker images (显示镜像列表,测试通过)
+
+3.私有仓库无法推送
+docker push 192.168.33.10:5000/jplock/zookeeper:latest( 192.168.33.10:5000是仓库ip和端口)报以下错误:
+Get https://192.168.33.10:5000/v1/_ping: EOF。做以下操作进行修复
+1).sudo chmod 777 /etc/default/docker
+2).vi /etc/default/docker
+3).增加以下语句:
+DOCKER_OPTS="$DOCKER_OPTS --insecure-registry=192.168.33.10:5000"
+4).运行私有仓库:
+docker run -d -p 5000:5000 -v /vagrant_data:/tmp/registry registry 
+
+五.以下是关于docker-machine(Mac端就是boot2docker虚拟机)的操作:
+1.打开docker虚拟机终端
+2.命令详解:
+docker-machine create: 创建一个新的虚拟机
+docker-machine start:启动一个停止的虚拟机
+docker-machine stop:
+docker-machine restart:
+docker-machine rm:移除虚拟机
+docker-machine ls:列出所有虚拟机的状态
+docker-machine inspect:显示虚拟机的详细信息
+docker-machine ip:显示虚拟机的ip地址
+docker-machine upgrade:更新虚拟机
+
+更多详细文档如下:https://docs.docker.com/v1.11/engine/installation/mac/
+
+六.启动docker私有仓库
+1.cd /Users/longfei/vagrantEnv/vagrant_work/docker_registry
+2.vagrant up
+3.vagrant ssh
+4.docker -d
+5.开启一个新终端(vagrant ssh)
+6.sudo chmod 777 /var/run/docker.sock
+7.docker run -d -p 5000:5000 -v /vagrant_data:/tmp/registry registry
+
+exec "$DOCKER" daemon $DOCKER_OPTS --insecure-registry 192.168.33.10:5000
+
+
+
+
+

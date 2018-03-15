@@ -1,0 +1,14 @@
+.DS_STORE
+node_modules
+*~
+logs
+static
+.grunt
+*.sublime-project
+*.sublime-workspace
+
+.idea/
+npm-debug.log
+
+##es6###
+dist

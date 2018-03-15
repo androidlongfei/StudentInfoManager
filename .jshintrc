@@ -1,0 +1,56 @@
+{
+    "esversion": 6,
+    "funcscope": true,
+    "futurehostile": true,
+    "indent": 4,
+    "asi": true,
+    "elision": true,
+    "eqnull": true,
+    "laxbreak": true,
+    "sub": true
+}
+
+/**
+ * esversion:6
+ * 选择ES版本，3,5,6
+ **/
+
+/**
+ * funcscope:true
+ * 变量只能在函数域上定义，在代码块上定义的变量给出警告
+ **/
+
+/**
+ * futurehostile:true
+ * 当使用JS保留字时，显示警告
+ **/
+
+/**
+ * indent:2
+ * 指定tab缩进宽度为 2 个空格
+ **/
+
+/**
+ * unused:true
+ * 提示未使用的变量
+ **/
+
+/**
+ * asi:true
+ * 不显示缺少分号警告
+ **/
+
+/**
+ * eqnull:true
+ * 不显示关于 == null的警告
+ **/
+
+/**
+ * laxbreak:true
+ * 不显示不安全的折行的警告
+ **/
+
+/**
+ * sub:true
+ * 该选项控制形如 person["name"] vs. person.name的警告信息的显示
+ **/
