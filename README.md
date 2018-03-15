@@ -56,7 +56,7 @@ gulp
 
 ## 访问api文档
 
-- [SampleManager API Documentation](http://localhost:3800/documentation)
+- [StudentManager API Documentation](http://localhost:3800/documentation)
 
 ## 项目使用到的第三方库
 
@@ -71,7 +71,10 @@ gulp
 
 **数据库**
 
-- [sequelize](http://docs.sequelizejs.com/en/v3/)
+- [sequelize](https://github.com/sequelize/sequelize)
+- [sequelize3英文版](https://sequelize.readthedocs.io/en/v3/)
+- [sequelize4英文版](http://docs.sequelizejs.com/)
+- [sequelize4中文版](https://github.com/demopark/sequelize-docs-Zh-CN)
 
 **其它**
 

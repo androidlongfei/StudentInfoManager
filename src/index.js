@@ -115,7 +115,7 @@ debug('test gulp 11')
 // 增加前缀
 var prefixize = function (route) {
     route.path = setting.routePrefix + route.path;
-    // console.log('route.path', route.path, typeof route.path)
+    console.log('route.path', route.path, typeof route.path)
     return route;
 };
 // register router
