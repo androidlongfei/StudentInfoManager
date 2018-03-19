@@ -63,11 +63,12 @@ const createStudent = (classId) => {
     console.log('开始创建学生', classId)
     let student = {
         name: '张三',
+        studentNo: 2,
         gender: 1,
         birth: moment().format('YYYY-MM-DD'),
         telephone: '18600900941',
         admission: '2014-07-01',
-        classId: classId,
+        classId: 1,
         address: '北京市'
     }
     Student.create(student).then((student) => {
