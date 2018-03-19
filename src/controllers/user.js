@@ -14,17 +14,17 @@ const setting = require('../config/setting');
 
 const userMethods = {
     // 登录
-    login: function (request, reply) {
+    login(request, reply) {
         let username = request.payload.username;
         let password = request.payload.password;
         async.waterfall([
             // 查询用户
-            function (cb) {
+            (cb) => {
                 User.findOne({
                     where: {
                         username: username
                     }
-                }).then(function (user) {
+                }).then((user) => {
                     // 验证用户
                     debug(`1.检测用户是否存在===>,用户名:${user.username}`)
                     if (user) {
@@ -46,7 +46,7 @@ const userMethods = {
                         error.output.payload.code = 1002;
                         cb(error);
                     }
-                }).catch(function (err) {
+                }).catch((err) => {
                     let error = Boom.badImplementation();
                     error.output.payload.code = 1003;
                     error.output.payload.dbError = err;
@@ -55,9 +55,9 @@ const userMethods = {
                 })
             },
             // 验证密码
-            function (user, cb) {
+            (user, cb) => {
                 debug(`2.验证密码===>用户输入:${password},数据库:${user.password}`)
-                bcrypt.compare(password, user.password, function (err, isPasswordPassed) {
+                bcrypt.compare(password, user.password, (err, isPasswordPassed) => {
                     if (err) {
                         let error = Boom.badImplementation();
                         error.output.payload.code = 1022;
@@ -79,7 +79,7 @@ const userMethods = {
                 })
             },
             // 创建token
-            function (userInfoJSON, userInstance, cb) {
+            (userInfoJSON, userInstance, cb) => {
                 debug(`3.给用户创建token===>,用户名:${userInstance.username}`)
                 if (userInfoJSON.token) {
                     delete userInfoJSON.token
@@ -93,7 +93,7 @@ const userMethods = {
                 debug(`创建token成功,token:${token}`)
                 cb(null, userInfoJSON);
             }
-        ], function (err, result) {
+        ], (err, result) => {
             if (err) {
                 reply(err)
             } else {

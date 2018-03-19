@@ -2,39 +2,23 @@
 
 /**
  *  用户表
- *  一个用户对应多个角色
- *  一个用户对应多个组
+ *  一个用户对应一个角色
  */
 
 import dbConn from '../lib/db/dbConn'
 import moment from 'moment'
 import Sequelize from 'sequelize'
+import roleConfig from '../config/role'
 
 const bcrypt = require('bcrypt-nodejs');
 const debug = require('debug')('app:models:User');
 
-const User = dbConn.define('users', {
+const User = dbConn.define('user', {
     username: {
         type: Sequelize.STRING,
         unique: true,
         allowNull: false,
         field: 'user_name'
-    },
-    realName: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        field: 'real_name'
-    },
-    department: {
-        type: Sequelize.STRING
-    },
-    lastLoginDate: {
-        type: Sequelize.DATE,
-        field: 'last_login_date'
-    },
-    lastLoginIp: {
-        type: Sequelize.STRING,
-        field: 'last_login_ip'
     },
     password: {
         type: Sequelize.STRING
@@ -44,13 +28,25 @@ const User = dbConn.define('users', {
         defaultValue: false,
         field: 'is_disabled'
     },
-    isDeleted: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
-        field: 'is_deleted'
-    },
     token: {
         type: Sequelize.TEXT
+    },
+    roleType: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        field: 'role_type'
+    },
+    roleName: {
+        type: Sequelize.STRING,
+        field: 'role_name'
+    },
+    targetId: {
+        type: Sequelize.INTEGER,
+        field: 'target_id'
+    },
+    lastLoginDate: {
+        type: Sequelize.DATE,
+        field: 'last_login_date'
     },
     createdAt: {
         type: Sequelize.DATE,
@@ -63,19 +59,25 @@ const User = dbConn.define('users', {
         field: 'updated_at'
     }
 }, {
+    // 属性get方法
     getterMethods: {
-        lastLoginDate: function () {
+        lastLoginDate() {
+            // console.log('user---', this)
             if (this.dataValues.lastLoginDate) {
                 return moment(this.dataValues.lastLoginDate).format();
             } else {
-                return this.dataValues.lastLoginDate;
+                return '';
             }
         }
     },
-    comment: 'I am a table comment!'
+    // 属性set方法
+    setterMethods: {
+
+    },
+    comment: '用户表'
 })
 
-let createUserHashPassword = function (user) {
+let createUserHashPassword = (user) => {
     if (user.password) {
         debug(`创建用户,密码加密:${user.username}`)
         let salt = bcrypt.genSaltSync();
@@ -83,9 +85,14 @@ let createUserHashPassword = function (user) {
         debug(`加密前password:${user.password},加密后cryptedPassword:${cryptedPassword}`)
         user.password = cryptedPassword;
     }
+    if (user.roleType) {
+        user.roleName = roleConfig.name[user.roleType.toString()]
+        // user.roleName = 'system manager'
+        console.log('user.roleName', user.roleName)
+    }
 }
 
-let updateUserHashPassword = function (user) {
+let updateUserHashPassword = (user) => {
     debug('更新用户信息:', user.toJSON())
     debug(`是否需要密码加密:${user.resetPassword}`)
     if (user.resetPassword) {

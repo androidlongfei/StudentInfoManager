@@ -4,6 +4,7 @@
 
 import async from 'async'
 import createDebug from 'debug'
+import roleConfig from '../../config/role'
 
 const debug = createDebug('app:lib:db:table')
 
@@ -26,7 +27,7 @@ function dropTable() {
  * @return {[type]} [无返回值]
  */
 function createTable() {
-    User.sync({force: true}).then(function () {
+    User.sync({ force: true }).then(function () {
         createAdmin()
     })
 }
@@ -39,16 +40,17 @@ function createAdmin() {
     User.findOrCreate({
         where: {
             username: 'admin',
-            realName: '超级管理员'
+            roleType: roleConfig.type.ADMIN
         }
     }).spread(function (user, isNew) {
         debug('isNew', isNew)
         if (isNew) {
             user.password = 'admin'
             user.resetPassword = true
+            user.roleType = roleConfig.type.ADMIN
             user.save();
         }
-        // debug('user', user);
+        debug('user', user.toJSON());
     }).catch(function (err) {
         debug('err', err);
     })

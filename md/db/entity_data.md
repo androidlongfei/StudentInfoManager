@@ -19,6 +19,7 @@
 - role_name 角色的名字 (学生,教师,教务员,系统管理员)
 - role_type 角色类型 (学生:1,教师:2,教务员:3,系统管理员:4)
 - role_permissions 角色权限
+- target_id 目标用户ID
 - create_at 创建日期
 - update_at 更新日期
 
