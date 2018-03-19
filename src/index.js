@@ -129,7 +129,7 @@ for (var route in routes) {
 // Table.dropTable()
 
 // create table
-// Table.createTable()
+Table.createTable()
 
 server.start(function (err) {
     if (err) {

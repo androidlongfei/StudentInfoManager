@@ -4,12 +4,15 @@
 
 import async from 'async'
 import createDebug from 'debug'
+import moment from 'moment'
 import roleConfig from '../../config/role'
 
 const debug = createDebug('app:lib:db:table')
 
 // 用户相关表
 import User from '../../models/User'
+import Student from '../../models/Student'
+import Class from '../../models/Class'
 
 /**
  * [dropTable 删除表格]
@@ -26,9 +29,51 @@ function dropTable() {
  * @param [force:创建表之前会先删除它]
  * @return {[type]} [无返回值]
  */
-function createTable() {
-    User.sync({ force: true }).then(function () {
-        createAdmin()
+const createTable = () => {
+    // User.sync({ force: true }).then(function () {
+    //     createAdmin()
+    // })
+
+    // 学生班级信息初始化
+    Class.sync({ force: false }).then(() => {
+        console.log('创建班级表1')
+        createClass()
+        Student.sync({ force: false }).then(() => {
+            console.log('创建学生表2')
+        })
+    });
+}
+
+const createClass = () => {
+    Class.findOrCreate({
+        where: {
+            name: '20181005'
+        }
+    }).spread((classModel, isNew) => {
+        debug('class isNew', isNew)
+        if (!isNew) {
+            createStudent(classModel.classId)
+        }
+    }).catch(err => {
+        debug('err', err)
+    })
+}
+
+const createStudent = (classId) => {
+    console.log('开始创建学生', classId)
+    let student = {
+        name: '张三',
+        gender: 1,
+        birth: moment().format('YYYY-MM-DD'),
+        telephone: '18600900941',
+        admission: '2014-07-01',
+        classId: classId,
+        address: '北京市'
+    }
+    Student.create(student).then((student) => {
+        console.log('创建', student)
+    }).catch(err => {
+        debug('err', err)
     })
 }
 
@@ -36,13 +81,13 @@ function createTable() {
  * [createAdmin 创建超级管理员账号]
  * @return {[type]} [description]
  */
-function createAdmin() {
+const createAdmin = () => {
     User.findOrCreate({
         where: {
             username: 'admin',
             roleType: roleConfig.type.ADMIN
         }
-    }).spread(function (user, isNew) {
+    }).spread((user, isNew) => {
         debug('isNew', isNew)
         if (isNew) {
             user.password = 'admin'
@@ -51,7 +96,7 @@ function createAdmin() {
             user.save();
         }
         debug('user', user.toJSON());
-    }).catch(function (err) {
+    }).catch(err => {
         debug('err', err);
     })
 }
