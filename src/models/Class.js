@@ -15,7 +15,7 @@ const Class = dbConn.define('class', {
     name: {
         type: Sequelize.STRING // 班级名字
     },
-    node: {
+    note: {
         type: Sequelize.STRING // 备注
     },
     departmentsNo: {

@@ -19,9 +19,15 @@ import Class from '../../models/Class'
  * @return {[type]} [description]
  */
 function dropTable() {
-    User.drop().then(function () {
-        debug('删除User表')
-    })
+    // User.drop().then(function () {
+    //     debug('删除User表')
+    // })
+
+    // Student.drop({ force: false }).then(() => {
+    //     Class.drop({ force: false }).then(function () {
+    //         debug('删除Class表')
+    //     })
+    // })
 }
 
 /**
@@ -34,7 +40,7 @@ const createTable = () => {
     //     createAdmin()
     // })
 
-    // 学生班级信息初始化
+    // 创建班级
     Class.sync({ force: false }).then(() => {
         console.log('创建班级表1')
         createClass()
@@ -47,7 +53,8 @@ const createTable = () => {
 const createClass = () => {
     Class.findOrCreate({
         where: {
-            name: '20181005'
+            name: '20181005',
+            note: '班级备注'
         }
     }).spread((classModel, isNew) => {
         debug('class isNew', isNew)

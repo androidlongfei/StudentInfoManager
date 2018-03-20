@@ -59,6 +59,7 @@ server.ext({
             return reply.continue()
         } else if (path === `${setting.routePrefix}/login` ||
             request.path === `${setting.routePrefix}/app` ||
+            request.path === `${setting.routePrefix}/class` ||
             request.path === `${setting.routePrefix}/config`) {
             // 进入登陆流程
             request.headers.token = 'not be verified!'
@@ -115,13 +116,14 @@ debug('test gulp 11')
 // 增加前缀
 var prefixize = function (route) {
     route.path = setting.routePrefix + route.path;
-    console.log('route.path', route.path, typeof route.path)
+    // console.log('route.path', route.path)
     return route;
 };
 // register router
+// console.log('routes---', routes)
 for (var route in routes) {
-    server.route(routes[route].map(prefixize));
     // console.log('route', routes[route])
+    server.route(routes[route].map(prefixize));
 }
 
 
@@ -133,7 +135,8 @@ Table.createTable()
 
 server.start(function (err) {
     if (err) {
-        debug.error(`启动服务error: ${err}`)
+        console.log(`启动服务error: ${err}`);
+        // debug.error(`启动服务error: ${err}`)
     }
 
     debug(`Started on port: ${setting.port}`)
