@@ -16,7 +16,7 @@ const debug = require('debug')('app:models:User');
 const User = dbConn.define('user', {
     username: {
         type: Sequelize.STRING,
-        unique: true,
+        // unique: true,
         allowNull: false,
         field: 'user_name'
     },
@@ -79,16 +79,16 @@ const User = dbConn.define('user', {
 
 let createUserHashPassword = (user) => {
     if (user.password) {
-        debug(`创建用户,密码加密:${user.username}`)
+        // debug(`创建用户,密码加密:${user.username}`)
         let salt = bcrypt.genSaltSync();
         let cryptedPassword = bcrypt.hashSync(user.password, salt);
-        debug(`加密前password:${user.password},加密后cryptedPassword:${cryptedPassword}`)
+        // debug(`加密前password:${user.password},加密后cryptedPassword:${cryptedPassword}`)
         user.password = cryptedPassword;
     }
     if (user.roleType) {
         user.roleName = roleConfig.name[user.roleType.toString()]
         // user.roleName = 'system manager'
-        console.log('user.roleName', user.roleName)
+        // console.log('user.roleName', user.roleName)
     }
 }
 

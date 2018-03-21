@@ -42,34 +42,36 @@ const createTable = () => {
 
     // 创建班级
     Class.sync({ force: false }).then(() => {
-        console.log('创建班级表1')
-        createClass()
-        Student.sync({ force: false }).then(() => {
-            console.log('创建学生表2')
-        })
+        // console.log('创建班级表1')
+
+        // Student.sync({ force: true }).then(() => {
+        //     console.log('创建学生表2')
+        //     createStudent()
+        // })
     });
+
+    Student.sync({ force: true }).then(() => {
+        // createStudent()
+    })
 }
 
 const createClass = () => {
     Class.findOrCreate({
         where: {
-            name: '20181005',
+            name: '20181006',
             note: '班级备注'
         }
     }).spread((classModel, isNew) => {
         debug('class isNew', isNew)
-        if (!isNew) {
-            createStudent(classModel.classId)
-        }
     }).catch(err => {
         debug('err', err)
     })
 }
 
-const createStudent = (classId) => {
-    console.log('开始创建学生', classId)
-    let student = {
-        name: '张三',
+const createStudent = () => {
+    console.log('开始创建学生----')
+    let newStudent = {
+        name: '张三7',
         studentNo: 2,
         gender: 1,
         birth: moment().format('YYYY-MM-DD'),
@@ -78,9 +80,21 @@ const createStudent = (classId) => {
         classId: 1,
         address: '北京市'
     }
-    Student.create(student).then((student) => {
-        console.log('创建', student)
-    }).catch(err => {
+    let newUser = {
+        username: newStudent.name,
+        password: '000000',
+        roleType: 1
+    }
+    User.create(newUser).then(function (user) {
+        let userJSON = user.toJSON();
+        debug('用户---学生', userJSON)
+        newStudent.userId = userJSON.id
+        Student.create(newStudent).then((student) => {
+            console.log('创建学生成功', student.toJSON())
+        }).catch(err => {
+            debug('err', err)
+        })
+    }).catch(function (err) {
         debug('err', err)
     })
 }
