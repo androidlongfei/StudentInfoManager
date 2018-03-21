@@ -65,6 +65,7 @@ server.ext({
             request.headers.token = 'not be verified!'
             return reply.continue()
         } else {
+            return reply.continue();
             let plamformToken = {
                 'request.headers.token': request.headers.token,
                 'request.query.token': request.query.token,
@@ -115,7 +116,7 @@ debug('test gulp 11')
 
 // 增加前缀
 var prefixize = function (route) {
-    route.path = setting.routePrefix + route.path;
+    // route.path = setting.routePrefix + route.path;
     // console.log('route.path', route.path)
     return route;
 };
@@ -131,7 +132,7 @@ for (var route in routes) {
 // Table.dropTable()
 
 // create table
-Table.createTable()
+// Table.createTable()
 
 server.start(function (err) {
     if (err) {

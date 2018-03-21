@@ -13,7 +13,8 @@ const start = 20181000
 
 const Class = dbConn.define('class', {
     name: {
-        type: Sequelize.STRING // 班级名字
+        type: Sequelize.STRING, // 班级名字
+        comment: '班级名字'
     },
     note: {
         type: Sequelize.STRING // 备注
@@ -56,7 +57,7 @@ const afterCreate = (classModel) => {
 
 const update = (classModel) => {
     debug('更新班级信息:', classModel.toJSON())
-    classModel.name = start + this.id + ''
+    // classModel.name = start + this.id + ''
 }
 
 Class.hasMany(Student, { foreignKey: 'classId' })
