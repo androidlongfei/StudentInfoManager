@@ -13,7 +13,7 @@ const schemaStudentModel = Joi.object({
 
 module.exports = (() => {
     return [{
-        // 创建班级路由
+        // 创建学生路由
         method: 'POST',
         path: '/student',
         config: {
@@ -33,6 +33,8 @@ module.exports = (() => {
                     telephone: Joi.string(),
                     admission: Joi.string(),
                     classId: Joi.number().integer(),
+                    professional: Joi.string(),
+                    department: Joi.string(),
                     address: Joi.string()
                 }
             }

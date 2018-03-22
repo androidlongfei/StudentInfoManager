@@ -54,6 +54,14 @@ const Student = dbConn.define('student', {
         field: 'class_id', // 所属班级 (外键)
         comment: '所属班级(外键)'
     },
+    professional: {
+        type: Sequelize.STRING,
+        comment: '所学专业'
+    },
+    department: {
+        type: Sequelize.STRING,
+        comment: '所属院系'
+    },
     address: {
         type: Sequelize.JSON,
         comment: '居住地址'

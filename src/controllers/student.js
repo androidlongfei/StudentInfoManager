@@ -26,6 +26,8 @@ const studentMethods = {
                     telephone: postParameter.telephone,
                     admission: postParameter.admission,
                     classId: postParameter.classId,
+                    professional: postParameter.professional,
+                    department: postParameter.department,
                     address: postParameter.address
                 }
                 Student.create(newModel).then(model => {

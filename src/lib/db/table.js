@@ -2,7 +2,7 @@
  * 创建或者删除表
  */
 
-import async from 'async'
+// import async from 'async'
 import createDebug from 'debug'
 import moment from 'moment'
 import roleConfig from '../../config/role'
@@ -23,8 +23,8 @@ function dropTable() {
     //     debug('删除User表')
     // })
 
-    // Student.drop({ force: false }).then(() => {
-    //     Class.drop({ force: false }).then(function () {
+    // Student.drop({ force: true }).then(() => {
+    //     Class.drop({ force: true }).then(function () {
     //         debug('删除Class表')
     //     })
     // })
@@ -36,15 +36,15 @@ function dropTable() {
  * @return {[type]} [无返回值]
  */
 const createTable = () => {
-    User.sync({ force: false }).then(function () {
-        createAdmin()
-    })
-
-    // 创建班级
-    Class.sync({ force: false }).then(() => {});
+    // User.sync({ force: false }).then(function () {
+    //     createAdmin()
+    // })
+    //
+    // // 创建班级
+    // Class.sync({ force: false }).then(() => {});
 
     // 创建学生
-    Student.sync({ force: false }).then(() => {
+    Student.sync({ force: true }).then(() => {
         // createStudent()
     })
 }

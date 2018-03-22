@@ -2,15 +2,12 @@
 
 const debug = require('debug')('app:controllers:class');
 const async = require('async');
-const _ = require('underscore');
-const jwt = require('jsonwebtoken');
+// const _ = require('underscore');
 const Boom = require('boom');
-const bcrypt = require('bcrypt-nodejs');
-const moment = require('moment');
+// const moment = require('moment');
 
 const Class = require('../models/Class');
 
-const setting = require('../config/setting');
 
 const classMethods = {
     // 创建班级
@@ -19,7 +16,7 @@ const classMethods = {
         let newClass = {
             name: postParameter.name,
             note: postParameter.note,
-            departmentsNo: postParameter.departmentsNo
+            department: postParameter.department
         }
         Class.create(newClass).then(function (classModel) {
             let classModelJSON = classModel.toJSON();
@@ -143,8 +140,7 @@ const classMethods = {
                     debug('更细班级信息', result)
                     reply(result)
                 }
-            });
-
+            })
     },
     findOneById(request, reply) {
         async.waterfall([ // 查询班级

@@ -1,7 +1,7 @@
 'use strict';
 
 var utilsController = require('../controllers/utils');
-const debug = require('debug')('app:routes:utils');
+// const debug = require('debug')('app:routes:utils');
 
 module.exports = (function () {
     return [{
@@ -18,11 +18,23 @@ module.exports = (function () {
         }
     }, {
         method: 'GET',
-        path: '/config',
+        path: '/departments',
         config: {
-            handler: utilsController.getConfig,
-            description: '获取config信息',
-            notes: '返回 config 信息',
+            handler: utilsController.getDepartmentInfo,
+            description: '获取院系信息',
+            notes: '返回departments信息',
+            tags: ['api'],
+            response: {
+                schema: null
+            }
+        }
+    }, {
+        method: 'GET',
+        path: '/professional',
+        config: {
+            handler: utilsController.getProfessionalInfo,
+            description: '获取专业信息',
+            notes: '返回professional信息',
             tags: ['api'],
             response: {
                 schema: null

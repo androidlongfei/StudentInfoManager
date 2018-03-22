@@ -1,3 +1,5 @@
+// 角色
+
 const role = {
     type: {
         STUDENT: 1, // 学生

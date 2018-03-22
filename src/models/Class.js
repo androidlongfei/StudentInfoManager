@@ -19,9 +19,10 @@ const Class = dbConn.define('class', {
     note: {
         type: Sequelize.STRING // 备注
     },
-    departmentsNo: {
-        type: Sequelize.INTEGER,
-        field: 'departments_no' // 所属院系
+    department: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        field: 'department' // 所属院系
     },
     createdAt: {
         type: Sequelize.DATE,

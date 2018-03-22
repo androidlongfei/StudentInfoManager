@@ -5,7 +5,7 @@ const Joi = require('joi');
 const schemaClassModel = Joi.object({
     name: Joi.string().description('班级名'),
     note: Joi.string().description('班级备注'),
-    departmentsNo: Joi.any().description('所属院系'),
+    department: Joi.any().description('所属院系'),
     id: Joi.number().integer().description('班级ID'),
     createdAt: Joi.date().description('创建时间'),
     updatedAt: Joi.date().description('更新时间')
@@ -26,9 +26,9 @@ module.exports = (() => {
             },
             validate: {
                 payload: {
-                    name: Joi.string().required().required(),
+                    name: Joi.string().required(),
                     note: Joi.string().required(),
-                    departmentsNo: Joi.number().integer().required()
+                    department: Joi.string().required()
                 }
             }
         }
@@ -67,7 +67,7 @@ module.exports = (() => {
                 },
                 payload: {
                     name: Joi.string(),
-                    departmentsNo: Joi.number().integer(),
+                    department: Joi.string().allow(null),
                     note: Joi.string().allow(null),
                 }
 
