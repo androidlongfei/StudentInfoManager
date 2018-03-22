@@ -26,7 +26,7 @@ module.exports = (() => {
             },
             validate: {
                 payload: {
-                    studentNo: Joi.number().integer().required(),
+                    idCardNo: Joi.number().integer().required(),
                     name: Joi.string().required(),
                     gender: Joi.number().integer().required(),
                     birth: Joi.string().required(),
@@ -51,7 +51,7 @@ module.exports = (() => {
             },
             validate: {
                 params: {
-                    classId: Joi.number().integer().required(),
+                    studentId: Joi.number().integer().required(),
                 }
             }
         }
@@ -60,8 +60,8 @@ module.exports = (() => {
         path: '/student/{studentId}',
         config: {
             handler: studentController.update,
-            description: '编辑班级信息',
-            notes: '返回班级信息',
+            description: '编辑学生信息',
+            notes: '返回学生信息',
             tags: ['api'],
             response: {
                 // schema: schemaClassModel,
@@ -71,7 +71,7 @@ module.exports = (() => {
                     studentId: Joi.number().integer().required(),
                 },
                 payload: {
-                    studentNo: Joi.number().integer().required(),
+                    idCardNo: Joi.number().integer().required(),
                     name: Joi.string().required(),
                     gender: Joi.number().integer().required(),
                     birth: Joi.string().required(),

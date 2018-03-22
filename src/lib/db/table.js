@@ -36,20 +36,14 @@ function dropTable() {
  * @return {[type]} [无返回值]
  */
 const createTable = () => {
-    // User.sync({ force: true }).then(function () {
-    //     createAdmin()
-    // })
+    User.sync({ force: false }).then(function () {
+        createAdmin()
+    })
 
     // 创建班级
-    Class.sync({ force: false }).then(() => {
-        // console.log('创建班级表1')
+    Class.sync({ force: false }).then(() => {});
 
-        // Student.sync({ force: true }).then(() => {
-        //     console.log('创建学生表2')
-        //     createStudent()
-        // })
-    });
-
+    // 创建学生
     Student.sync({ force: false }).then(() => {
         // createStudent()
     })

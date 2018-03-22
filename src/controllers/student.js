@@ -19,7 +19,7 @@ const studentMethods = {
             (cb) => {
                 let postParameter = request.payload
                 let newModel = {
-                    studentNo: postParameter.studentNo,
+                    idCardNo: postParameter.idCardNo,
                     name: postParameter.name,
                     gender: postParameter.gender,
                     birth: postParameter.birth,
@@ -29,6 +29,8 @@ const studentMethods = {
                     address: postParameter.address
                 }
                 Student.create(newModel).then(model => {
+                    model.studentNo = model.generateStudentNo
+                    model.save()
                     let modelJSON = model.toJSON();
                     debug('create student success', modelJSON);
                     cb(null, modelJSON)
@@ -43,7 +45,7 @@ const studentMethods = {
             },
             (targetModel, cb) => {
                 let newUser = {
-                    username: targetModel.name,
+                    username: targetModel.idCardNo,
                     password: setting.detaultPwd,
                     targetId: targetModel.id,
                     roleType: role.type.STUDENT
@@ -93,11 +95,11 @@ const studentMethods = {
                     let error = Boom.badImplementation();
                     error.output.payload.code = 1030;
                     error.output.payload.dbError = err;
-                    error.output.payload.message = '查询班级数据发生错误';
+                    error.output.payload.message = '查询学生数据发生错误';
                     cb(error);
                 })
             },
-            // 删除
+            // 删除学生
             (targetModel, cb) => {
                 targetModel.destroy().then((delModel) => {
                     // debug('classModel', classModel)
@@ -106,13 +108,33 @@ const studentMethods = {
                         error.output.payload.code = 1031;
                         cb(error);
                     } else {
-                        cb(null, delModel.toJSON());
+                        // 删除学生-用户账号
+                        // debug('studentId', targetModel.id)
+                        User.destroy({
+                            where: {
+                                targetId: parseInt(targetModel.id)
+                            }
+                        }).then(delUserModel => {
+                            if (!delUserModel) {
+                                let error = Boom.notAcceptable('学生-用户不存在');
+                                error.output.payload.code = 1032;
+                                cb(error);
+                            } else {
+                                cb(null, delModel.toJSON())
+                            }
+                        }).catch(err => {
+                            let error = Boom.badImplementation();
+                            error.output.payload.code = 1033;
+                            error.output.payload.dbError = err;
+                            error.output.payload.message = '删除学生-用户出错';
+                            cb(error);
+                        })
                     }
                 }).catch((err) => {
                     let error = Boom.badImplementation();
-                    error.output.payload.code = 1032;
+                    error.output.payload.code = 1034;
                     error.output.payload.dbError = err;
-                    error.output.payload.message = '删除班级出错';
+                    error.output.payload.message = '删除学生出错';
                     cb(error);
                 })
             }
@@ -133,7 +155,7 @@ const studentMethods = {
                     Student.findById(request.params.studentId).then((model) => {
                         debug('查询到班级', model)
                         if (!model) {
-                            let error = Boom.notAcceptable('班级不存在');
+                            let error = Boom.notAcceptable('班级 不存在');
                             error.output.payload.code = 1044;
                             cb(error);
                         } else {

@@ -8,21 +8,28 @@
 import dbConn from '../lib/db/dbConn'
 // import moment from 'moment'
 import Sequelize from 'sequelize'
-import User from './User'
+// import User from './User'
 const debug = require('debug')('app:models:Student');
 const start = 201800000
 
 const Student = dbConn.define('student', {
-    studentNo: {
+    idCardNo: {
         type: Sequelize.INTEGER,
         unique: true,
         allowNull: false,
+        field: 'id_card_no',
+        comment: '身份证号'
+    },
+    studentNo: {
+        type: Sequelize.INTEGER,
+        // unique: true,
+        // allowNull: false,
         field: 'student_no',
         comment: '学号'
     },
     name: {
         type: Sequelize.STRING,
-        unique: true,
+        // unique: true,
         allowNull: false,
         comment: '学生名字'
     },
@@ -63,7 +70,14 @@ const Student = dbConn.define('student', {
     }
 }, {
     // 属性get方法
-    getterMethods: {},
+    getterMethods: {
+        // 自动生成学生编号
+        generateStudentNo() {
+            if (this.dataValues.id) {
+                return start + this.dataValues.id
+            }
+        }
+    },
     // 属性set方法
     setterMethods: {
 
