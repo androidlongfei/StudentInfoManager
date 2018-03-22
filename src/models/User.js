@@ -16,7 +16,7 @@ const debug = require('debug')('app:models:User');
 const User = dbConn.define('user', {
     username: {
         type: Sequelize.STRING,
-        // unique: true,
+        unique: true,
         allowNull: false,
         field: 'user_name'
     },

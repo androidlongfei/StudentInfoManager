@@ -1,17 +1,16 @@
 'use strict';
 
-const debug = require('debug')('app:controllers:class');
+const debug = require('debug')('app:controllers:student');
 const async = require('async');
-const _ = require('underscore');
-const jwt = require('jsonwebtoken');
+// const _ = require('underscore');
 const Boom = require('boom');
-const bcrypt = require('bcrypt-nodejs');
-const moment = require('moment');
+// const moment = require('moment');
 
 const Student = require('../models/Student');
 const User = require('../models/User');
 
 const setting = require('../config/setting');
+const role = require('../config/role');
 
 const studentMethods = {
     // 创建学生
@@ -45,24 +44,28 @@ const studentMethods = {
             (targetModel, cb) => {
                 let newUser = {
                     username: targetModel.name,
-                    password: '000000',
+                    password: setting.detaultPwd,
                     targetId: targetModel.id,
-                    roleType: 1
+                    roleType: role.type.STUDENT
                 }
                 User.create(newUser).then(user => {
-                    let userJSON = user.toJSON();
+                    let userJSON = user.toJSON()
                     debug('用户---学生', userJSON)
                     userJSON.baseInfo = targetModel
                     cb(null, userJSON)
                 }).catch(function (err) {
-                    cb(err)
+                    let error = Boom.notAcceptable('创建学生用户失败');
+                    error.output.payload.code = 1005;
+                    error.output.payload.dbError = err;
+                    debug('create student-user err', error);
+                    cb(error)
                 })
             }
         ], (err, result) => {
             if (err) {
                 reply(err)
             } else {
-                debug('删除学生信息', result)
+                debug('创建学生信息', result)
                 reply(result)
             }
         })
@@ -176,7 +179,6 @@ const studentMethods = {
                     reply(result)
                 }
             });
-
     },
     // 根据学生ID查询学生信息
     findOneById(request, reply) {

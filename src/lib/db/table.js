@@ -50,7 +50,7 @@ const createTable = () => {
         // })
     });
 
-    Student.sync({ force: true }).then(() => {
+    Student.sync({ force: false }).then(() => {
         // createStudent()
     })
 }

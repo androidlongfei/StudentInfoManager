@@ -22,6 +22,8 @@ const Student = dbConn.define('student', {
     },
     name: {
         type: Sequelize.STRING,
+        unique: true,
+        allowNull: false,
         comment: '学生名字'
     },
     gender: {
@@ -44,11 +46,6 @@ const Student = dbConn.define('student', {
         type: Sequelize.INTEGER,
         field: 'class_id', // 所属班级 (外键)
         comment: '所属班级(外键)'
-    },
-    userId: {
-        type: Sequelize.INTEGER,
-        field: 'user_id',
-        comment: '登录账户(外键)'
     },
     address: {
         type: Sequelize.JSON,
@@ -88,7 +85,7 @@ let updateStudent = (student) => {
 // User.hasMany(RelationUserRole, { foreignKey: 'userId' });
 
 // 将向Student添加一个user_id属性以保存User的主键值
-Student.belongsTo(User, { foreignKey: 'userId' });
+// Student.belongsTo(User, { foreignKey: 'userId' });
 
 Student.hook('beforeCreate', createStudent);
 Student.hook('beforeUpdate', updateStudent);
