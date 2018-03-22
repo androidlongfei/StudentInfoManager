@@ -45,51 +45,42 @@ server.ext({
     type: 'onRequest',
     method: function (request, reply) {
         let path = request.path
-        let method = request.method
-        debug('onRequest!!!', path, method)
-
-        // 测试
+        // let method = request.method
+        debug('----------onRequest!!!', path)
+        // 测试 UI
         if (path.indexOf('/documentation') > -1 || path.indexOf('/swagger') > -1) {
             debug('test', request.headers.token)
             return reply.continue();
-        } else if (path === '/login') {
+        } else if (path === '/login' || request.path === '/app' || request.path === '/class') {
             // 登录 ,不需要验证token
             debug('login')
             request.headers.token = 'not token'
             return reply.continue()
         } else if (path === `${setting.routePrefix}/login` ||
             request.path === `${setting.routePrefix}/app` ||
-            request.path === `${setting.routePrefix}/class` ||
-            request.path === `${setting.routePrefix}/config`) {
+            request.path === `${setting.routePrefix}/class`) {
             // 进入登陆流程
             request.headers.token = 'not be verified!'
             return reply.continue()
         } else {
-            return reply.continue();
-            let plamformToken = {
-                'request.headers.token': request.headers.token,
-                'request.query.token': request.query.token,
-                'x-access-token': request.headers['x-access-token'],
-                'accept': request.headers['accept'],
-                'content-type': request.headers['content-type'],
-                'authorization': request.headers['authorization']
+            let test = false
+            if (test) {
+                return reply.continue();
             }
-            // debug('plamformToken', plamformToken)
             let token = request.headers.token || request.query.token || request.headers['x-access-token'] || request.headers['accept'] || request.headers['content-type'] || request.headers['authorization']
-            debug('client token', token)
+            // debug('client token', token)
             // 解码token
-            jwt.verify(token, setting.SECRET, function (err, decoded) {
-                debug('decoded', decoded)
+            jwt.verify(token, setting.SECRET, (err, decoded) => {
+                // debug('decoded', decoded)
                 if (err) {
-                    console.log(err, decoded) // bar
+                    debug('token失败--------', err)
                     let error = Boom.unauthorized('身份验证失败！登录超时，请重新登录！')
                     error.output.payload.code = 1001;
                     reply(error)
                 } else {
-                    decoded.userId = decoded.id
-                    request.token = decoded
+                    debug('token正确-------', decoded) // bar
+                    request.user = decoded
                     request.auth.credentials = decoded
-                    debug(decoded.userId, decoded.privileges)
                     return reply.continue()
                 }
             });

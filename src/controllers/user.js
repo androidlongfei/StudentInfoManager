@@ -2,15 +2,17 @@
 
 const debug = require('debug')('app:controllers:user');
 const async = require('async');
-const _ = require('underscore');
+// const _ = require('underscore');
 const jwt = require('jsonwebtoken');
 const Boom = require('boom');
 const bcrypt = require('bcrypt-nodejs');
 const moment = require('moment');
 
 const User = require('../models/User');
+const Student = require('../models/Student');
 
 const setting = require('../config/setting');
+const role = require('../config/role');
 
 const userMethods = {
     // 登录
@@ -89,30 +91,55 @@ const userMethods = {
                 userInfoJSON.tokenExpirationAt = moment().add(setting.TokenExpirationSeconds, 's').format();
                 // 保存tocken到数据库
                 userInstance.token = token
-                userInstance.save()
-                debug(`创建token成功,token:${token}`)
-                cb(null, userInfoJSON);
+                userInstance.save().then(newUser => {
+                    debug(`创建token成功,token:${token}`)
+                    cb(null, userInfoJSON)
+                })
+            },
+            // 获取用户角色基本信息
+            (userInfo, cb) => {
+                userInfo.baseInfo = {}
+                if (!userInfo.targetId) {
+                    cb(null, userInfo)
+                } else {
+                    if (userInfo.roleType === role.type.STUDENT) {
+                        // 学生
+                        debug('userInfo.targetId', userInfo.targetId)
+                        Student.findOne({
+                            where: {
+                                id: parseInt(userInfo.targetId)
+                            }
+                        }).then(student => {
+                            debug('student--------', student)
+                            if (student) {
+                                userInfo.baseInfo = student.toJSON()
+                            }
+                            cb(null, userInfo)
+                        }).catch(err => {
+                            debug(err)
+                            cb(null, userInfo)
+                        })
+                    }
+                }
             }
         ], (err, result) => {
             if (err) {
                 reply(err)
             } else {
-                debug(`4.返回用户信息===>,user:${result}`)
-                request.token = result;
-                request.token.userId = result.id;
+                debug('4.返回用户信息===>', result)
+                request.token = result
                 reply(result);
             }
         })
     },
-
-    logout: function () {},
-
-    changePassword: function (request, reply) {
+    // 更改密码
+    changePassword(request, reply) {
         // reply(request.payload);
         async.waterfall([
             // 验证身份
-            function (cb) {
-                if (request.params.userId === request.token.id) {
+            (cb) => {
+                debug('changePassword', request.params.userId, request.user.id)
+                if (request.params.userId === request.user.id) {
                     cb(null)
                 } else {
                     let error = Boom.unauthorized('身份验证失败，不能修改密码');
@@ -121,8 +148,8 @@ const userMethods = {
                 }
             },
             // 查询用户
-            function (cb) {
-                User.findById(request.token.id).then(function (user) {
+            (cb) => {
+                User.findById(request.params.userId).then(user => {
                     if (user.isDeleted) {
                         let error = Boom.forbidden('用户被管理员删除，不能修改密码');
                         error.output.payload.code = 1009;
@@ -134,7 +161,7 @@ const userMethods = {
                     } else {
                         cb(null, user)
                     }
-                }).catch(function (err) {
+                }).catch(err => {
                     let error = Boom.badImplementation();
                     error.output.payload.code = 1010;
                     error.output.payload.dbError = err;
@@ -143,7 +170,7 @@ const userMethods = {
                 });
             },
             // 验证旧密码
-            function (user, cb) {
+            (user, cb) => {
                 if (bcrypt.compareSync(request.payload.oldPassword, user.password)) {
                     cb(null, user)
                 } else {
@@ -153,24 +180,24 @@ const userMethods = {
                 }
             },
             // 修改密码
-            function (user, cb) {
+            (user, cb) => {
                 user.password = request.payload.newPassword;
                 user.token = null;
-                user.save().then(function (newPwdUser) {
+                user.resetPassword = true;
+                user.save().then(newPwdUser => {
                     // debug(uuu);
                     let userInfoJSON = newPwdUser.toJSON();
                     delete userInfoJSON.password;
                     cb(null, userInfoJSON);
-                }).catch(function (err) {
+                }).catch(err => {
                     let error = Boom.badImplementation();
                     error.output.payload.code = 1012;
                     error.output.payload.dbError = err;
                     error.output.payload.message = '查询数据发生错误';
                     cb(error);
-                });
-                // cb(null);
+                })
             }
-        ], function (err, result) {
+        ], (err, result) => {
             if (err) {
                 reply(err);
             } else {
@@ -178,22 +205,17 @@ const userMethods = {
             }
         })
     },
-
-    create: function (request, reply) {
+    // 创建用户(只限制系统管理员)
+    create(request, reply) {
         let newUser = {
             username: request.payload.username,
-            realName: request.payload.realName,
-            department: request.payload.department,
             password: request.payload.password
         }
         User.create(newUser).then(function (user) {
             let userJSON = user.toJSON();
             delete userJSON.password;
             reply(userJSON);
-            // console.log('done');
-            // console.log('user', user);
         }).catch(function (err) {
-            // console.log('err', err);
             let error = Boom.notAcceptable('创建用户失败');
             error.output.payload.code = 1004;
             error.output.payload.dbError = err;
@@ -201,24 +223,15 @@ const userMethods = {
             reply(error);
         });
     },
-
-    deleteUser: function (request, reply) {
+    // 删除用户
+    delete(request, reply) {
         async.waterfall([
-            function (cb) {
+            (cb) => {
                 User.findOne({
                     where: {
                         id: request.params.userId
-                    },
-                    attributes: [
-                        'id',
-                        'username',
-                        'realName',
-                        'isDeleted',
-                        'updatedAt',
-                        'createdAt'
-                    ]
-                }).then(function (user) {
-                    debug(user);
+                    }
+                }).then(user => {
                     if (!user) {
                         let error = Boom.notAcceptable('用户不存在');
                         error.output.payload.code = 1006;
@@ -232,51 +245,33 @@ const userMethods = {
                     };
                 })
             },
-            // // 检查分组
-            // function(user, cb) {
-            //     RelationUserGroup.findAll({ where: { userId: user.userId } }).then(function(relationsGroup) {
-            //         if (relationsGroup.length > 0) {
-            //             let error = Boom.notAcceptable('用户仍在分组中，不能删除');
-            //             error.output.payload.code = 1017;
-            //             cb(error);
-            //         } else {
-            //             cb(null, user);
-            //         }
-
-            //     }).catch(function(err) {
-            //         let error = Boom.badImplementation();
-            //         error.output.payload.code = 1018;
-            //         error.output.payload.dbError = err;
-            //         error.output.payload.message = '查询数据发生错误';
-            //         cb(error);
-            //     });
-            // },
-            // 检查角色
-            // function(user, cb) {
-            //     RelationUserRole.findAll({ where: { userId: user.userId } }).then(function(relationsRole) {
-            //         if (relationsRole.length > 0) {
-            //             let error = Boom.notAcceptable('用户仍存在角色，不能删除');
-            //             error.output.payload.code = 1019;
-            //             cb(error);
-            //         } else {
-            //             cb(null, user);
-            //         }
-
-            //     }).catch(function(err) {
-            //         let error = Boom.badImplementation();
-            //         error.output.payload.code = 1020;
-            //         error.output.payload.dbError = err;
-            //         error.output.payload.message = '查询数据发生错误';
-            //         cb(error);
-            //     });
-            // },
-            function (user, cb) {
-                user.isDeleted = true;
-                user.save().then(function (deletedUser) {
-                    cb(null, deletedUser.toJSON());
-                });
+            (user, cb) => {
+                debug('del user --------', user.roleName, user.roleType)
+                user.destroy().then(delUser => {
+                    if (delUser) {
+                        cb(null, delUser)
+                    } else {
+                        let error = Boom.notAcceptable('删除用户失败');
+                        error.output.payload.code = 1006;
+                        cb(error)
+                    }
+                })
+            },
+            (delUser, cb) => {
+                if (delUser.roleType === role.type.STUDENT) {
+                    Student.destroy({
+                        where: {
+                            id: parseInt(delUser.targetId)
+                        }
+                    }).then(delModel => {
+                        cb(null, delUser.toJSON())
+                    }).catch(err => {
+                        debug(err)
+                        cb(null, delUser.toJSON())
+                    })
+                }
             }
-        ], function (err, result) {
+        ], (err, result) => {
             if (err) {
                 reply(err)
             } else {
@@ -284,6 +279,7 @@ const userMethods = {
             }
         })
     },
+    // 更新用户
     updateUser: function (request, reply) {
         async.waterfall([
             function (cb) {
@@ -333,6 +329,7 @@ const userMethods = {
             }
         });
     },
+    // 重置密码
     resetPassword: function (request, reply) {
         async.waterfall([
             // 查询用户
@@ -385,7 +382,7 @@ const userMethods = {
             }
         });
     },
-
+    // 禁用用户
     disableUser: function (request, reply) {
         async.waterfall([
             function (cb) {
@@ -421,6 +418,7 @@ const userMethods = {
             }
         })
     },
+    // 启用用户
     enableUser: function (request, reply) {
         async.waterfall([
             function (cb) {

@@ -40,57 +40,11 @@ const createTable = () => {
     //     createAdmin()
     // })
     //
-    // // 创建班级
+    // 创建班级
     // Class.sync({ force: false }).then(() => {});
 
     // 创建学生
-    Student.sync({ force: true }).then(() => {
-        // createStudent()
-    })
-}
-
-const createClass = () => {
-    Class.findOrCreate({
-        where: {
-            name: '20181006',
-            note: '班级备注'
-        }
-    }).spread((classModel, isNew) => {
-        debug('class isNew', isNew)
-    }).catch(err => {
-        debug('err', err)
-    })
-}
-
-const createStudent = () => {
-    console.log('开始创建学生----')
-    let newStudent = {
-        name: '张三7',
-        studentNo: 2,
-        gender: 1,
-        birth: moment().format('YYYY-MM-DD'),
-        telephone: '18600900941',
-        admission: '2014-07-01',
-        classId: 1,
-        address: '北京市'
-    }
-    let newUser = {
-        username: newStudent.name,
-        password: '000000',
-        roleType: 1
-    }
-    User.create(newUser).then(function (user) {
-        let userJSON = user.toJSON();
-        debug('用户---学生', userJSON)
-        newStudent.userId = userJSON.id
-        Student.create(newStudent).then((student) => {
-            console.log('创建学生成功', student.toJSON())
-        }).catch(err => {
-            debug('err', err)
-        })
-    }).catch(function (err) {
-        debug('err', err)
-    })
+    // Student.sync({ force: false }).then(() => {})
 }
 
 /**
