@@ -15,6 +15,7 @@ import Student from '../../models/Student'
 import Teacher from '../../models/Teacher'
 import Class from '../../models/Class'
 import AcdemicDean from '../../models/AcdemicDean'
+import Course from '../../models/Course'
 
 
 /**
@@ -53,6 +54,9 @@ const createTable = () => {
 
     // 创建教务员
     AcdemicDean.sync({ force: false }).then(() => {})
+
+    // 创建课程
+    Course.sync({ force: false }).then(() => {})
 }
 
 /**
