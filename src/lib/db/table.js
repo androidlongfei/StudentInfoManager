@@ -14,6 +14,8 @@ import User from '../../models/User'
 import Student from '../../models/Student'
 import Teacher from '../../models/Teacher'
 import Class from '../../models/Class'
+import AcdemicDean from '../../models/AcdemicDean'
+
 
 /**
  * [dropTable 删除表格]
@@ -37,10 +39,8 @@ function dropTable() {
  * @return {[type]} [无返回值]
  */
 const createTable = () => {
-    // User.sync({ force: false }).then(function () {
-    //     createAdmin()
-    // })
-
+    // 创建系统用户
+    // User.sync({ force: false }).then(() => { createAdmin() })
 
     // 创建班级
     // Class.sync({ force: false }).then(() => {});
@@ -50,6 +50,9 @@ const createTable = () => {
 
     // 创建教师
     Teacher.sync({ force: false }).then(() => {})
+
+    // 创建教务员
+    AcdemicDean.sync({ force: false }).then(() => {})
 }
 
 /**

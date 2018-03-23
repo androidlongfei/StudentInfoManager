@@ -6,13 +6,13 @@ const async = require('async');
 const Boom = require('boom');
 // const moment = require('moment');
 
-const Teacher = require('../models/Teacher');
+const AcdemicDean = require('../models/AcdemicDean');
 const User = require('../models/User');
 
 const setting = require('../config/setting');
 const role = require('../config/role');
 
-const teacherMethods = {
+const acdemicDeanMethods = {
     // 创建
     create(request, reply) {
         async.waterfall([
@@ -22,22 +22,20 @@ const teacherMethods = {
                     idCardNo: postParameter.idCardNo,
                     name: postParameter.name,
                     gender: postParameter.gender,
-                    title: postParameter.title,
                     birth: postParameter.birth,
                     telephone: postParameter.telephone,
-                    department: postParameter.department,
-                    address: postParameter.address
+                    department: postParameter.department
                 }
-                Teacher.create(newModel).then(model => {
-                    model.teacherNo = model.generateTeacherNo
-                    debug('model.teacherNo', model.teacherNo)
+                AcdemicDean.create(newModel).then(model => {
+                    model.acdemicDeanNo = model.generateAcdemicDeanNo
+                    debug('model.acdemicDeanNo', model.acdemicDeanNo)
                     model.save()
                     let modelJSON = model.toJSON();
-                    debug('create teacher success', modelJSON);
+                    debug('create success', modelJSON);
                     cb(null, modelJSON)
                 }).catch(err => {
                     // console.log('err', err);
-                    let error = Boom.notAcceptable('创建教师失败');
+                    let error = Boom.notAcceptable('创建教务员失败');
                     error.output.payload.code = 1004;
                     error.output.payload.dbError = err;
                     cb(error)
@@ -48,15 +46,15 @@ const teacherMethods = {
                     username: targetModel.idCardNo,
                     password: setting.detaultPwd,
                     targetId: targetModel.id,
-                    roleType: role.type.TEACHER
+                    roleType: role.type.ACDEMIC
                 }
                 User.create(newUser).then(user => {
                     let userJSON = user.toJSON()
-                    debug('用户---教师', userJSON)
+                    debug('用户---教务员', userJSON)
                     userJSON.baseInfo = targetModel
                     cb(null, userJSON)
                 }).catch(function (err) {
-                    let error = Boom.notAcceptable('创建教师用户失败');
+                    let error = Boom.notAcceptable('创建教务员用户失败');
                     error.output.payload.code = 1005;
                     error.output.payload.dbError = err;
                     debug('create student-user err', error);
@@ -67,7 +65,7 @@ const teacherMethods = {
             if (err) {
                 reply(err)
             } else {
-                debug('创建教师信息', result)
+                debug('创建信息', result)
                 reply(result)
             }
         })
@@ -77,14 +75,14 @@ const teacherMethods = {
         async.waterfall([
             // 查询
             (cb) => {
-                Teacher.findOne({
+                AcdemicDean.findOne({
                     where: {
-                        id: parseInt(request.params.teacherId)
+                        id: parseInt(request.params.acdemicDeanId)
                     }
                 }).then((model) => {
                     // debug('classModel', classModel)
                     if (!model) {
-                        let error = Boom.notAcceptable('教师不存在')
+                        let error = Boom.notAcceptable('教务员不存在')
                         error.output.payload.code = 1029;
                         cb(error);
                     } else {
@@ -104,7 +102,7 @@ const teacherMethods = {
                 targetModel.destroy().then((delModel) => {
                     // debug('classModel', classModel)
                     if (!delModel) {
-                        let error = Boom.notAcceptable('教师不存在');
+                        let error = Boom.notAcceptable('教务员不存在');
                         error.output.payload.code = 1031;
                         cb(error);
                     } else {
@@ -116,7 +114,7 @@ const teacherMethods = {
                             }
                         }).then(delUserModel => {
                             if (!delUserModel) {
-                                let error = Boom.notAcceptable('教师-用户不存在');
+                                let error = Boom.notAcceptable('教务员-用户不存在');
                                 error.output.payload.code = 1032;
                                 cb(error);
                             } else {
@@ -152,7 +150,7 @@ const teacherMethods = {
         async.waterfall([
                 // 1.查询
                 (cb) => {
-                    Teacher.findById(request.params.teacherId).then((model) => {
+                    AcdemicDean.findById(request.params.acdemicDeanId).then((model) => {
                         debug('查询到', model)
                         if (!model) {
                             let error = Boom.notAcceptable('不存在');
@@ -206,13 +204,13 @@ const teacherMethods = {
     findOneById(request, reply) {
         async.waterfall([ // 查询
             (cb) => {
-                findOne(request.params.teacherId, cb);
+                findOne(request.params.acdemicDeanId, cb);
             }
         ], (err, result) => {
             if (err) {
                 reply(err)
             } else {
-                debug('findOneById student', result)
+                debug('findOneById 教务员', result)
                 reply(result)
             }
         });
@@ -222,7 +220,7 @@ const teacherMethods = {
 // 查询一个学生
 function findOne(id, cb) {
     // debug('findOneClass', id)
-    Teacher.findOne({
+    AcdemicDean.findOne({
         where: {
             id: parseInt(id)
         }
@@ -245,4 +243,4 @@ function findOne(id, cb) {
     })
 };
 
-module.exports = teacherMethods;
+module.exports = acdemicDeanMethods;

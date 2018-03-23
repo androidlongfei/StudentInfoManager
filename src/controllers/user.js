@@ -11,6 +11,7 @@ const moment = require('moment');
 const User = require('../models/User');
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
+const AcdemicDean = require('../models/AcdemicDean');
 
 const setting = require('../config/setting');
 const role = require('../config/role');
@@ -121,7 +122,7 @@ const userMethods = {
                             cb(null, userInfo)
                         })
                     } else if (userInfo.roleType === role.type.TEACHER) {
-                        // 教师
+                        // 教务员
                         Teacher.findOne({
                             where: {
                                 id: parseInt(userInfo.targetId)
@@ -130,6 +131,22 @@ const userMethods = {
                             debug('teacher--------', teacher)
                             if (teacher) {
                                 userInfo.baseInfo = teacher.toJSON()
+                            }
+                            cb(null, userInfo)
+                        }).catch(err => {
+                            debug(err)
+                            cb(null, userInfo)
+                        })
+                    } else if (userInfo.roleType === role.type.ACDEMIC) {
+                        // 教师
+                        AcdemicDean.findOne({
+                            where: {
+                                id: parseInt(userInfo.targetId)
+                            }
+                        }).then(acdemicDean => {
+                            debug('AcdemicDean--------', acdemicDean)
+                            if (acdemicDean) {
+                                userInfo.baseInfo = acdemicDean.toJSON()
                             }
                             cb(null, userInfo)
                         }).catch(err => {
@@ -288,6 +305,17 @@ const userMethods = {
                     })
                 } else if (delUser.roleType === role.type.TEACHER) {
                     Teacher.destroy({
+                        where: {
+                            id: parseInt(delUser.targetId)
+                        }
+                    }).then(delModel => {
+                        cb(null, delUser.toJSON())
+                    }).catch(err => {
+                        debug(err)
+                        cb(null, delUser.toJSON())
+                    })
+                } else if (delUser.roleType === role.type.ACDEMIC) {
+                    AcdemicDean.destroy({
                         where: {
                             id: parseInt(delUser.targetId)
                         }
