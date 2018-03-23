@@ -29,8 +29,8 @@ module.exports = (function () {
             path: '/user/{userId}',
             config: {
                 handler: userController.findOneById,
-                description: '0.2 获取用户信息',
-                notes: '返回 用户 信息',
+                description: '获取用户信息',
+                notes: '返回用户信息',
                 tags: ['api'],
                 response: {
                     schema: null

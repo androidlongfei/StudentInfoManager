@@ -10,6 +10,7 @@ const moment = require('moment');
 
 const User = require('../models/User');
 const Student = require('../models/Student');
+const Teacher = require('../models/Teacher');
 
 const setting = require('../config/setting');
 const role = require('../config/role');
@@ -119,6 +120,22 @@ const userMethods = {
                             debug(err)
                             cb(null, userInfo)
                         })
+                    } else if (userInfo.roleType === role.type.TEACHER) {
+                        // 教师
+                        Teacher.findOne({
+                            where: {
+                                id: parseInt(userInfo.targetId)
+                            }
+                        }).then(teacher => {
+                            debug('teacher--------', teacher)
+                            if (teacher) {
+                                userInfo.baseInfo = teacher.toJSON()
+                            }
+                            cb(null, userInfo)
+                        }).catch(err => {
+                            debug(err)
+                            cb(null, userInfo)
+                        })
                     }
                 }
             }
@@ -127,7 +144,7 @@ const userMethods = {
                 reply(err)
             } else {
                 debug('4.返回用户信息===>', result)
-                request.token = result
+                request.user = result
                 reply(result);
             }
         })
@@ -260,6 +277,17 @@ const userMethods = {
             (delUser, cb) => {
                 if (delUser.roleType === role.type.STUDENT) {
                     Student.destroy({
+                        where: {
+                            id: parseInt(delUser.targetId)
+                        }
+                    }).then(delModel => {
+                        cb(null, delUser.toJSON())
+                    }).catch(err => {
+                        debug(err)
+                        cb(null, delUser.toJSON())
+                    })
+                } else if (delUser.roleType === role.type.TEACHER) {
+                    Teacher.destroy({
                         where: {
                             id: parseInt(delUser.targetId)
                         }

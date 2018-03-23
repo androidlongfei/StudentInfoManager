@@ -12,6 +12,7 @@ const debug = createDebug('app:lib:db:table')
 // 用户相关表
 import User from '../../models/User'
 import Student from '../../models/Student'
+import Teacher from '../../models/Teacher'
 import Class from '../../models/Class'
 
 /**
@@ -39,12 +40,16 @@ const createTable = () => {
     // User.sync({ force: false }).then(function () {
     //     createAdmin()
     // })
-    //
+
+
     // 创建班级
     // Class.sync({ force: false }).then(() => {});
 
     // 创建学生
     // Student.sync({ force: false }).then(() => {})
+
+    // 创建教师
+    Teacher.sync({ force: false }).then(() => {})
 }
 
 /**

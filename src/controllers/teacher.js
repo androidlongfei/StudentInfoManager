@@ -6,14 +6,14 @@ const async = require('async');
 const Boom = require('boom');
 // const moment = require('moment');
 
-const Student = require('../models/Student');
+const Teacher = require('../models/Teacher');
 const User = require('../models/User');
 
 const setting = require('../config/setting');
 const role = require('../config/role');
 
-const studentMethods = {
-    // 创建学生
+const teacherMethods = {
+    // 创建
     create(request, reply) {
         async.waterfall([
             (cb) => {
@@ -22,26 +22,24 @@ const studentMethods = {
                     idCardNo: postParameter.idCardNo,
                     name: postParameter.name,
                     gender: postParameter.gender,
+                    title: postParameter.title,
                     birth: postParameter.birth,
                     telephone: postParameter.telephone,
-                    admission: postParameter.admission,
-                    classId: postParameter.classId,
-                    professional: postParameter.professional,
                     department: postParameter.department,
                     address: postParameter.address
                 }
-                Student.create(newModel).then(model => {
-                    model.studentNo = model.generateStudentNo
+                Teacher.create(newModel).then(model => {
+                    model.teacherNo = model.generateTeacherNo
+                    debug('model.teacherNo', model.teacherNo)
                     model.save()
                     let modelJSON = model.toJSON();
-                    debug('create student success', modelJSON);
+                    debug('create teacher success', modelJSON);
                     cb(null, modelJSON)
-                }).catch(function (err) {
+                }).catch(err => {
                     // console.log('err', err);
-                    let error = Boom.notAcceptable('创建学生失败');
+                    let error = Boom.notAcceptable('创建教师失败');
                     error.output.payload.code = 1004;
                     error.output.payload.dbError = err;
-                    debug('create student err', err);
                     cb(error)
                 });
             },
@@ -50,15 +48,15 @@ const studentMethods = {
                     username: targetModel.idCardNo,
                     password: setting.detaultPwd,
                     targetId: targetModel.id,
-                    roleType: role.type.STUDENT
+                    roleType: role.type.TEACHER
                 }
                 User.create(newUser).then(user => {
                     let userJSON = user.toJSON()
-                    debug('用户---学生', userJSON)
+                    debug('用户---教师', userJSON)
                     userJSON.baseInfo = targetModel
                     cb(null, userJSON)
                 }).catch(function (err) {
-                    let error = Boom.notAcceptable('创建学生用户失败');
+                    let error = Boom.notAcceptable('创建教师用户失败');
                     error.output.payload.code = 1005;
                     error.output.payload.dbError = err;
                     debug('create student-user err', error);
@@ -69,24 +67,24 @@ const studentMethods = {
             if (err) {
                 reply(err)
             } else {
-                debug('创建学生信息', result)
+                debug('创建教师信息', result)
                 reply(result)
             }
         })
     },
-    // 删除学生
+    // 删除
     delete(request, reply) {
         async.waterfall([
             // 查询
             (cb) => {
-                Student.findOne({
+                Teacher.findOne({
                     where: {
-                        id: parseInt(request.params.studentId)
+                        id: parseInt(request.params.teacherId)
                     }
                 }).then((model) => {
                     // debug('classModel', classModel)
                     if (!model) {
-                        let error = Boom.notAcceptable('学生不存在');
+                        let error = Boom.notAcceptable('教师不存在')
                         error.output.payload.code = 1029;
                         cb(error);
                     } else {
@@ -97,16 +95,16 @@ const studentMethods = {
                     let error = Boom.badImplementation();
                     error.output.payload.code = 1030;
                     error.output.payload.dbError = err;
-                    error.output.payload.message = '查询学生数据发生错误';
+                    error.output.payload.message = '查询数据发生错误';
                     cb(error);
                 })
             },
-            // 删除学生
+            // 删除
             (targetModel, cb) => {
                 targetModel.destroy().then((delModel) => {
                     // debug('classModel', classModel)
                     if (!delModel) {
-                        let error = Boom.notAcceptable('学生不存在');
+                        let error = Boom.notAcceptable('教师不存在');
                         error.output.payload.code = 1031;
                         cb(error);
                     } else {
@@ -118,7 +116,7 @@ const studentMethods = {
                             }
                         }).then(delUserModel => {
                             if (!delUserModel) {
-                                let error = Boom.notAcceptable('学生-用户不存在');
+                                let error = Boom.notAcceptable('教师-用户不存在');
                                 error.output.payload.code = 1032;
                                 cb(error);
                             } else {
@@ -128,7 +126,7 @@ const studentMethods = {
                             let error = Boom.badImplementation();
                             error.output.payload.code = 1033;
                             error.output.payload.dbError = err;
-                            error.output.payload.message = '删除学生-用户出错';
+                            error.output.payload.message = '删除教师-用户出错';
                             cb(error);
                         })
                     }
@@ -136,7 +134,7 @@ const studentMethods = {
                     let error = Boom.badImplementation();
                     error.output.payload.code = 1034;
                     error.output.payload.dbError = err;
-                    error.output.payload.message = '删除学生出错';
+                    error.output.payload.message = '删除教师出错';
                     cb(error);
                 })
             }
@@ -149,15 +147,15 @@ const studentMethods = {
             }
         })
     },
-    // 更新学生
+    // 更新
     update(request, reply) {
         async.waterfall([
-                // 1.查询班级
+                // 1.查询
                 (cb) => {
-                    Student.findById(request.params.studentId).then((model) => {
-                        debug('查询到班级', model)
+                    Teacher.findById(request.params.teacherId).then((model) => {
+                        debug('查询到', model)
                         if (!model) {
-                            let error = Boom.notAcceptable('班级 不存在');
+                            let error = Boom.notAcceptable('不存在');
                             error.output.payload.code = 1044;
                             cb(error);
                         } else {
@@ -171,16 +169,16 @@ const studentMethods = {
                         cb(error);
                     })
                 },
-                // 2.更新班级信息
+                // 2.更新信息
                 (targetModel, cb) => {
                     if (request.payload.name) {
                         targetModel.name = request.payload.name;
                     }
-                    if (request.payload.department) {
+                    if (request.payload.departments) {
                         targetModel.department = request.payload.department;
                     }
-                    if (request.payload.note) {
-                        targetModel.note = request.payload.note;
+                    if (request.payload.title) {
+                        targetModel.title = request.payload.title;
                     }
                     // debug('保存前', classModel)
                     targetModel.save().then(updateModel => {
@@ -190,7 +188,7 @@ const studentMethods = {
                         let error = Boom.badImplementation();
                         error.output.payload.code = 1046;
                         error.output.payload.dbError = err;
-                        error.output.payload.message = '更新学生信息';
+                        error.output.payload.message = '更新信息';
                         cb(error)
                     })
                 }
@@ -199,7 +197,7 @@ const studentMethods = {
                 if (err) {
                     reply(err)
                 } else {
-                    debug('更细学生信息', result)
+                    debug('更细信息', result)
                     reply(result)
                 }
             });
@@ -208,7 +206,7 @@ const studentMethods = {
     findOneById(request, reply) {
         async.waterfall([ // 查询
             (cb) => {
-                findOne(request.params.studentId, cb);
+                findOne(request.params.teacherId, cb);
             }
         ], (err, result) => {
             if (err) {
@@ -224,14 +222,14 @@ const studentMethods = {
 // 查询一个学生
 function findOne(id, cb) {
     // debug('findOneClass', id)
-    Student.findOne({
+    Teacher.findOne({
         where: {
             id: parseInt(id)
         }
     }).then((targetModel) => {
         // debug('classModel', classModel)
         if (!targetModel) {
-            let error = Boom.notAcceptable('查询学生数据发生错误, 学生不存在');
+            let error = Boom.notAcceptable('查询数据发生错误, 不存在');
             error.output.payload.code = 1029;
             cb(error);
         } else {
@@ -242,9 +240,9 @@ function findOne(id, cb) {
         let error = Boom.badImplementation();
         error.output.payload.code = 1030;
         error.output.payload.dbError = err;
-        error.output.payload.message = '查询学生数据发生错误';
+        error.output.payload.message = '查询数据发生错误';
         cb(error);
     })
 };
 
-module.exports = studentMethods;
+module.exports = teacherMethods;

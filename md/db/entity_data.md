@@ -76,7 +76,32 @@
 - course_name 课程名
 - optional 是否可选
 - total 课程学分
-- teacher_id 授课教师（外键）
+
+## 班级表(class)
+
+教务员使用此表进行班级管理,实现班级的增，删，改，查询.
+
+- id
+- class_name 名字
+- class_note 备注
+- address 地址(教学楼101室)
+- departments 所属院系
+
+# 关系材料
+
+## 课程安排表(course_info课程与班级n-m)
+
+教务员使用此表安排课程
+
+- id
+- course_id 课程id
+- class_id 班级id
+- teacher_id 教师id
+- address 上课地点(教学楼102班,根据班级ID获取班级地址)
+- time 上课时间(每周一、三、五第七、八节课)
+- start_time 开课时间(2015-07)
+- end_time 结课时间(2015-12)
+- semester 学期(第一学年上学期)
 
 ## 成绩表 (score)
 
@@ -86,30 +111,3 @@
 - student_id 学生ID
 - course_id 课程ID
 - score 分数
-
-## 班级表(class)
-
-教务员使用此表进行班级管理,实现班级的增，删，改，查询.
-
-- id
-- class_name 名字
-- class_note 备注
-- departments 所属院系
-
-## 班级课程表(relation_class_course)
-
-教务员使用此表设置和查询开课信息的权限
-
-- id
-- class_id 班级id
-- course_id 课程id
-- start_time 开课时间
-- semester 学期
-
-## 用户角色表 (relation_user_role)
-
-- id (主键自增)
-- user_id (用户ID)
-- role_id (角色ID)
-- create_at 创建日期
-- update_at 更新日期

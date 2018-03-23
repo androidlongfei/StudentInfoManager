@@ -63,7 +63,7 @@ server.ext({
             request.headers.token = 'not be verified!'
             return reply.continue()
         } else {
-            let test = false
+            let test = true
             if (test) {
                 return reply.continue();
             }
