@@ -74,7 +74,6 @@
 
 - id
 - course_name 课程名
-- optional 是否可选
 - total 课程学分
 
 ## 班级表(class)
@@ -89,7 +88,7 @@
 
 # 关系材料
 
-## 课程安排表(course_info课程与班级n-m)
+## 排课表(arrang_course)
 
 教务员使用此表安排课程
 
@@ -109,5 +108,5 @@
 
 - id
 - student_id 学生ID
-- course_id 课程ID
+- arrang_course_id 课程ID
 - score 分数
