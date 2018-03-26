@@ -26,7 +26,12 @@ const ArrangCourse = dbConn.define('arrang_course', {
     teacherId: {
         type: Sequelize.INTEGER,
         field: 'teacher_id',
-        comment: '课程所属老师'
+        comment: '上课老师'
+    },
+    address: {
+        type: Sequelize.STRING,
+        field: 'address',
+        comment: '上课地点'
     },
     time: {
         type: Sequelize.JSON,

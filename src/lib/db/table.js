@@ -17,6 +17,7 @@ import Class from '../../models/Class'
 import AcdemicDean from '../../models/AcdemicDean'
 import Course from '../../models/Course'
 import ArrangCourse from '../../models/ArrangCourse'
+import Score from '../../models/score'
 
 
 /**
@@ -45,10 +46,10 @@ const createTable = () => {
     // User.sync({ force: false }).then(() => { createAdmin() })
 
     // 创建班级
-    // Class.sync({ force: false }).then(() => {});
+    Class.sync({ force: false }).then(() => {});
 
     // 创建学生
-    // Student.sync({ force: false }).then(() => {})
+    Student.sync({ force: false }).then(() => {})
 
     // 创建教师
     Teacher.sync({ force: false }).then(() => {})
@@ -61,6 +62,9 @@ const createTable = () => {
 
     // 创建排课表
     ArrangCourse.sync({ force: false }).then(() => {})
+
+    // 创建成绩表
+    Score.sync({ force: false }).then(() => {})
 }
 
 /**

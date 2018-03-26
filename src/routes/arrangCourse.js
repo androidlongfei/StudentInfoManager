@@ -29,6 +29,7 @@ module.exports = (() => {
                     courseId: Joi.number().integer().required(),
                     classId: Joi.number().integer().required(),
                     teacherId: Joi.number().integer().required(),
+                    address: Joi.string().required(),
                     time: Joi.string().required(),
                     startTime: Joi.string().required(),
                     endTime: Joi.string().required(),
@@ -72,6 +73,7 @@ module.exports = (() => {
                 payload: {
                     courseId: Joi.number().integer(),
                     teacherId: Joi.number().integer(),
+                    address: Joi.string(),
                     time: Joi.string(),
                     startTime: Joi.string(),
                     endTime: Joi.string(),

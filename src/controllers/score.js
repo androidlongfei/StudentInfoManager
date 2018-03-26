@@ -1,30 +1,25 @@
 'use strict';
 
-const debug = require('debug')('app:controllers:teacher');
+const debug = require('debug')('app:controllers:score');
 const async = require('async');
 // const _ = require('underscore');
 const Boom = require('boom');
 // const moment = require('moment');
 
-const ArrangCourse = require('../models/ArrangCourse');
+const Score = require('../models/Score');
 
-const ArrangCourseMethods = {
+const scoreMethods = {
     // 创建
     create(request, reply) {
         async.waterfall([
             (cb) => {
                 let postParameter = request.payload
                 let newModel = {
-                    courseId: postParameter.courseId,
-                    classId: postParameter.classId,
-                    teacherId: postParameter.teacherId,
-                    address: postParameter.address,
-                    time: postParameter.time,
-                    startTime: postParameter.startTime,
-                    endTime: postParameter.endTime,
-                    semester: postParameter.semester
+                    arrangCourseId: postParameter.arrangCourseId,
+                    studentId: postParameter.studentId,
+                    score: postParameter.score
                 }
-                ArrangCourse.create(newModel).then(model => {
+                Score.create(newModel).then(model => {
                     let modelJSON = model.toJSON();
                     debug('create success', modelJSON);
                     cb(null, modelJSON)
@@ -49,9 +44,9 @@ const ArrangCourseMethods = {
         async.waterfall([
             // 查询
             (cb) => {
-                ArrangCourse.findOne({
+                Score.findOne({
                     where: {
-                        id: parseInt(request.params.arrangCourseId)
+                        id: parseInt(request.params.scoreId)
                     }
                 }).then((model) => {
                     // debug('classModel', classModel)
@@ -103,7 +98,7 @@ const ArrangCourseMethods = {
         async.waterfall([
                 // 1.查询
                 (cb) => {
-                    ArrangCourse.findById(request.params.arrangCourseId).then((model) => {
+                    Score.findById(request.params.scoreId).then((model) => {
                         if (!model) {
                             let error = Boom.notAcceptable('不存在');
                             error.output.payload.code = 1044;
@@ -121,29 +116,8 @@ const ArrangCourseMethods = {
                 },
                 // 2.更新信息
                 (targetModel, cb) => {
-                    if (request.payload.courseId) {
-                        targetModel.courseId = request.payload.courseId;
-                    }
-                    if (request.payload.classId) {
-                        targetModel.classId = request.payload.classId;
-                    }
-                    if (request.payload.teacherId) {
-                        targetModel.teacherId = request.payload.teacherId;
-                    }
-                    if (request.payload.address) {
-                        targetModel.address = request.payload.address;
-                    }
-                    if (request.payload.time) {
-                        targetModel.time = request.payload.time;
-                    }
-                    if (request.payload.startTime) {
-                        targetModel.startTime = request.payload.startTime;
-                    }
-                    if (request.payload.endTime) {
-                        targetModel.endTime = request.payload.endTime;
-                    }
-                    if (request.payload.semester) {
-                        targetModel.semester = request.payload.semester;
+                    if (request.payload.score) {
+                        targetModel.score = request.payload.score;
                     }
                     // debug('保存前', classModel)
                     targetModel.save().then(updateModel => {
@@ -170,7 +144,7 @@ const ArrangCourseMethods = {
     findOneById(request, reply) {
         async.waterfall([ // 查询
             (cb) => {
-                findOne(request.params.arrangCourseId, cb);
+                findOne(request.params.scoreId, cb);
             }
         ], (err, result) => {
             if (err) {
@@ -185,7 +159,7 @@ const ArrangCourseMethods = {
 
 // 查询一个学生
 function findOne(id, cb) {
-    ArrangCourse.findOne({
+    Score.findOne({
         where: {
             id: parseInt(id)
         }
@@ -206,4 +180,4 @@ function findOne(id, cb) {
     })
 };
 
-module.exports = ArrangCourseMethods;
+module.exports = scoreMethods;
