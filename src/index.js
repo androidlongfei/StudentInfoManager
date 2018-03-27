@@ -53,7 +53,7 @@ server.ext({
             return reply.continue();
         } else if (path === '/login' || request.path === '/app' || request.path === '/class') {
             // 登录 ,不需要验证token
-            debug('login')
+            // debug('login', request.headers.token)
             request.headers.token = 'not token'
             return reply.continue()
         } else if (path === `${setting.routePrefix}/login` ||

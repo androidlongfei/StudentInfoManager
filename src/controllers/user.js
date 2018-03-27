@@ -34,25 +34,25 @@ const userMethods = {
                     if (user) {
                         if (user.isDeleted) {
                             let error = Boom.notAcceptable('用户被管理员删除，不能登录');
-                            error.output.payload.code = 1007;
+                            error.output.payload.code = 10001;
                             cb(error);
                         } else if (user.isDisabled) {
                             let error = Boom.notAcceptable('用户被管理员禁用，不能登录');
-                            error.output.payload.code = 1007;
+                            error.output.payload.code = 10001;
                             cb(error);
                         } else {
                             // 进入下一步，验证密码
-                            debug(`用户${user.username}存在`)
+                            // debug(`用户${user.username}存在`)
                             cb(null, user);
                         }
                     } else {
                         let error = Boom.badData('用户名或密码错误');
-                        error.output.payload.code = 1002;
+                        error.output.payload.code = 10001;
                         cb(error);
                     }
                 }).catch((err) => {
                     let error = Boom.badImplementation();
-                    error.output.payload.code = 1003;
+                    error.output.payload.code = 10001;
                     error.output.payload.dbError = err;
                     error.output.payload.message = '查询数据发生错误';
                     cb(error);
@@ -64,7 +64,7 @@ const userMethods = {
                 bcrypt.compare(password, user.password, (err, isPasswordPassed) => {
                     if (err) {
                         let error = Boom.badImplementation();
-                        error.output.payload.code = 1022;
+                        error.output.payload.code = 10001;
                         error.output.payload.message = '验证密码时出错，请联系管理员';
                         cb(error)
                     } else {
@@ -76,7 +76,7 @@ const userMethods = {
                         } else {
                             debug('验证密码不通过')
                             let error = Boom.badData('用户名或密码错误');
-                            error.output.payload.code = 1023;
+                            error.output.payload.code = 10001;
                             cb(error);
                         }
                     }

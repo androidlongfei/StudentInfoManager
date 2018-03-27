@@ -80,3 +80,4 @@ gulp
 
 - [hapi](http://hapijs.com/tutorials)
 - [joi](https://github.com/hapijs/joi/blob/v9.0.4/API.md)
+- [boom错误码](https://github.com/hapijs/boom)
