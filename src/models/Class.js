@@ -61,7 +61,7 @@ const update = (classModel) => {
     // classModel.name = start + this.id + ''
 }
 
-Class.hasMany(Student, { foreignKey: 'classId' })
+// Class.hasMany(Student, { foreignKey: 'classId' })
 
 
 Class.hook('beforeCreate', create);

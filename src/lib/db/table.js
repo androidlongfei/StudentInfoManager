@@ -25,15 +25,10 @@ import Score from '../../models/score'
  * @return {[type]} [description]
  */
 function dropTable() {
-    // User.drop().then(function () {
-    //     debug('删除User表')
-    // })
+    // User.drop().then(function () { debug('删除User表') })
 
-    // Student.drop({ force: true }).then(() => {
-    //     Class.drop({ force: true }).then(function () {
-    //         debug('删除Class表')
-    //     })
-    // })
+    // Student.drop({ force: true }).then(() => {})
+    // Class.drop({ force: true }).then(function () { debug('删除Class表') })
 }
 
 /**
