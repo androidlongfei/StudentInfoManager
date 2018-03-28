@@ -7,6 +7,8 @@ const Boom = require('boom');
 // const moment = require('moment');
 
 const Class = require('../models/Class');
+import Sequelize from 'Sequelize';
+const Op = Sequelize.Op;
 
 
 const classMethods = {
@@ -21,7 +23,9 @@ const classMethods = {
         Class.create(newClass).then(function (classModel) {
             let classModelJSON = classModel.toJSON();
             debug('classModelJSON', classModelJSON);
-            reply(classModelJSON);
+            setTimeout(() => {
+                reply(classModelJSON)
+            }, 3000)
         }).catch(function (err) {
             // console.log('err', err);
             let error = Boom.notAcceptable('创建班级失败');
@@ -146,6 +150,54 @@ const classMethods = {
         async.waterfall([ // 查询班级
             (cb) => {
                 findOneClass(request.params.classId, cb);
+            }
+        ], (err, result) => {
+            if (err) {
+                reply(err)
+            } else {
+                debug('result', result.toJSON())
+                reply(result.toJSON())
+            }
+        });
+    },
+    // 分页查询
+    count(request, reply) {
+        let filter = request.query.filter;
+        debug('count-------------', request.query);
+        let filterWhere = {}
+        if (filter) {
+            let current = filter.current
+            let limit = filter.limit
+            let name = filter.name
+            let department = filter.department
+            if (filter.name) {
+                filterWhere.name = {
+                    [Op.like]: `%${name}%`
+                }
+            }
+            if (filter.department) {
+                filterWhere.department = {
+                    [Op.like]: `%${department}%`
+                }
+            }
+        }
+        async.waterfall([ // 查询班级
+            (cb) => {
+                Class.findAll({
+                    where: filterWhere
+                }).then(function (classModel) {
+                    debug('classModel', classModel)
+                    // let classModelJSON = classModel.toJSON()
+                    // debug('classModelJSON', classModelJSON)
+                    reply(classModel)
+                }).catch(function (err) {
+                    // console.log('err', err);
+                    let error = Boom.notAcceptable('查询班级失败')
+                    error.output.payload.code = 1004;
+                    error.output.payload.dbError = err;
+                    debug('createClass err', err);
+                    reply(error);
+                });
             }
         ], (err, result) => {
             if (err) {

@@ -90,5 +90,24 @@ module.exports = (() => {
                 }
             }
         }
+    }, {
+        method: 'GET',
+        path: '/class/count',
+        config: {
+            handler: classController.count,
+            description: '根据条件获取班级信息',
+            notes: '返回班级信息',
+            tags: ['api'],
+            response: {
+                // schema: schemaClassModel
+            },
+            validate: {
+                query: {
+                    filter: Joi.object({
+                        name: Joi.string().description('班级名')
+                    })
+                }
+            }
+        }
     }]
 })()
