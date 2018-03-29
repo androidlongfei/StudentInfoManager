@@ -26,9 +26,9 @@ module.exports = (() => {
             },
             validate: {
                 payload: {
-                    name: Joi.string().required(),
-                    note: Joi.string().required(),
-                    department: Joi.string().required()
+                    name: Joi.string().required().description('班级名字'),
+                    note: Joi.string().required().description('备注'),
+                    department: Joi.string().required().description('所属院系')
                 }
             }
         }
@@ -86,7 +86,7 @@ module.exports = (() => {
             },
             validate: {
                 params: {
-                    classId: Joi.number().integer().required()
+                    classId: Joi.number().integer().required().description('班级ID')
                 }
             }
         }
@@ -95,17 +95,18 @@ module.exports = (() => {
         path: '/class/count',
         config: {
             handler: classController.count,
-            description: '根据条件获取班级信息',
-            notes: '返回班级信息',
+            description: '根据条件分页获取班级列表',
+            notes: '返回班级列表',
             tags: ['api'],
             response: {
                 // schema: schemaClassModel
             },
             validate: {
                 query: {
-                    filter: Joi.object({
-                        name: Joi.string().description('班级名')
-                    })
+                    name: Joi.string().description('班级名字'),
+                    department: Joi.string().description('所属院系'),
+                    currentPage: Joi.number().integer().description('当前页'),
+                    pageSize: Joi.number().integer().description('每页条数')
                 }
             }
         }

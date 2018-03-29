@@ -6,8 +6,7 @@ const departments = [
     '生物与医学工程学院',
     '软件学院',
     '继续教育学院',
-    '国际学院',
-    '软件学院'
+    '国际学院'
 ]
 
 module.exports = departments;

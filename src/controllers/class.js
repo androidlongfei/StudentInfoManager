@@ -162,33 +162,36 @@ const classMethods = {
     },
     // 分页查询
     count(request, reply) {
-        let filter = request.query.filter;
         debug('count-------------', request.query);
+        let queryObj = {};
         let filterWhere = {}
-        if (filter) {
-            let current = filter.current
-            let limit = filter.limit
-            let name = filter.name
-            let department = filter.department
-            if (filter.name) {
-                filterWhere.name = {
-                    [Op.like]: `%${name}%`
-                }
-            }
-            if (filter.department) {
-                filterWhere.department = {
-                    [Op.like]: `%${department}%`
-                }
+        if (request.query.name) {
+            filterWhere.name = {
+                [Op.like]: `%${request.query.name}%`
             }
         }
+        if (request.query.department) {
+            filterWhere.department = {
+                [Op.like]: `%${request.query.department}%`
+            }
+        }
+        if (request.query.currentPage && request.query.pageSize) {
+            let currentPage = request.query.currentPage
+            let pageSize = request.query.pageSize
+            let offset = (currentPage - 1) * pageSize
+            // offset是跳过offset条数据开始
+            queryObj.offset = offset
+            queryObj.limit = pageSize
+        }
+        queryObj.where = filterWhere
+        debug('queryObj', queryObj)
         async.waterfall([ // 查询班级
             (cb) => {
-                Class.findAll({
-                    where: filterWhere
-                }).then(function (classModel) {
-                    debug('classModel', classModel)
-                    // let classModelJSON = classModel.toJSON()
-                    // debug('classModelJSON', classModelJSON)
+                Class.findAndCountAll(queryObj).then(function (classModel) {
+                    // debug('classModel', classModel)
+                    // setTimeout(() => {
+                    //     reply(classModel)
+                    // }, 2000)
                     reply(classModel)
                 }).catch(function (err) {
                     // console.log('err', err);

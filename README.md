@@ -76,6 +76,10 @@ gulp
 - [sequelize4英文版](http://docs.sequelizejs.com/)
 - [sequelize4中文版](https://github.com/demopark/sequelize-docs-Zh-CN)
 
+sequelize4使用
+
+- [分页查询](https://demopark.github.io/sequelize-docs-Zh-CN/models-usage.html)
+
 **其它**
 
 - [hapi](http://hapijs.com/tutorials)
