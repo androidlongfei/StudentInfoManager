@@ -26,7 +26,7 @@ module.exports = (() => {
             },
             validate: {
                 payload: {
-                    idCardNo: Joi.number().integer().required(),
+                    idCardNo: Joi.string().required(),
                     name: Joi.string().required(),
                     gender: Joi.number().integer().required(),
                     birth: Joi.string().required(),
@@ -35,7 +35,8 @@ module.exports = (() => {
                     classId: Joi.number().integer(),
                     professional: Joi.string(),
                     department: Joi.string(),
-                    address: Joi.string()
+                    address: Joi.string(),
+                    age: Joi.number().integer()
                 }
             }
         }

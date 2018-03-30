@@ -14,7 +14,7 @@ const start = 201800000
 
 const Student = dbConn.define('student', {
     idCardNo: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         unique: true,
         allowNull: false,
         field: 'id_card_no',
@@ -53,6 +53,10 @@ const Student = dbConn.define('student', {
         type: Sequelize.INTEGER,
         field: 'class_id', // 所属班级 (外键)
         comment: '所属班级(外键)'
+    },
+    age: {
+        type: Sequelize.INTEGER,
+        comment: '年龄'
     },
     professional: {
         type: Sequelize.STRING,

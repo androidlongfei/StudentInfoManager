@@ -30,7 +30,7 @@ module.exports = (function () {
         }
     }, {
         method: 'GET',
-        path: '/professional',
+        path: '/professionals',
         config: {
             handler: utilsController.getProfessionalInfo,
             description: '获取专业信息',

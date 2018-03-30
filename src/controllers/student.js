@@ -23,12 +23,19 @@ const studentMethods = {
                     name: postParameter.name,
                     gender: postParameter.gender,
                     birth: postParameter.birth,
-                    telephone: postParameter.telephone,
                     admission: postParameter.admission,
                     classId: postParameter.classId,
                     professional: postParameter.professional,
-                    department: postParameter.department,
-                    address: postParameter.address
+                    department: postParameter.department
+                }
+                if (postParameter.age) {
+                    newModel.age = postParameter.age
+                }
+                if (postParameter.address) {
+                    newModel.address = postParameter.address
+                }
+                if (postParameter.telephone) {
+                    newModel.telephone = postParameter.telephone
                 }
                 Student.create(newModel).then(model => {
                     model.studentNo = model.generateStudentNo

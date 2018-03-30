@@ -6,7 +6,7 @@
 
 const appInfo = require('../config/app');
 const departmentsInfo = require('../config/departments');
-const professionalInfo = require('../config/professional');
+const professionalInfo = require('../config/professionals');
 
 const utils = {
     // 应用信息

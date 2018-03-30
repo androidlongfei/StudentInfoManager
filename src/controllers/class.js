@@ -170,11 +170,16 @@ const classMethods = {
                 [Op.like]: `%${request.query.name}%`
             }
         }
+        // 模糊匹配 %value%
         if (request.query.department) {
             filterWhere.department = {
                 [Op.like]: `%${request.query.department}%`
             }
         }
+        // 按照时间排序(DESC:降序,ASC:升序)
+        queryObj.order = [
+            ['createdAt', 'DESC']
+        ]
         if (request.query.currentPage && request.query.pageSize) {
             let currentPage = request.query.currentPage
             let pageSize = request.query.pageSize
