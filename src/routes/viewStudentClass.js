@@ -19,6 +19,7 @@ module.exports = (() => {
                     className: Joi.string().description('班级名字'),
                     studentDepartment: Joi.string().description('所属院系'),
                     idCardNo: Joi.string().description('身份证号'),
+                    studentNo: Joi.string().description('学号'),
                     currentPage: Joi.number().integer().description('当前页'),
                     pageSize: Joi.number().integer().description('每页条数')
                 }

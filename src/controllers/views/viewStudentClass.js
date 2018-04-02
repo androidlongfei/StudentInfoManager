@@ -35,6 +35,12 @@ const ViewStudentMethods = {
             }
         }
 
+        if (request.query.studentNo) {
+            filterWhere.studentNo = {
+                [Op.like]: `%${request.query.studentNo}%`
+            }
+        }
+
         // 按照时间排序(DESC:降序,ASC:升序)
         queryObj.order = [
             ['createTime', 'DESC']
