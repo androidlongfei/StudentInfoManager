@@ -76,6 +76,42 @@ const ViewStudentMethods = {
                 reply(result.toJSON())
             }
         })
+    },
+    // 根据学生ID查询学生信息
+    findOneById(request, reply) {
+        async.waterfall([ // 查询
+            (cb) => {
+                // debug('findOneClass', id)
+                ViewStudentClass.findOne({
+                    where: {
+                        studentId: parseInt(request.params.studentId)
+                    }
+                }).then((targetModel) => {
+                    // debug('classModel', classModel)
+                    if (!targetModel) {
+                        let error = Boom.notAcceptable('查询学生数据发生错误, 学生不存在');
+                        error.output.payload.code = 1029;
+                        cb(error);
+                    } else {
+                        cb(null, targetModel.toJSON());
+                    }
+                }).catch((err) => {
+                    debug('findOneClass', err);
+                    let error = Boom.badImplementation();
+                    error.output.payload.code = 1030;
+                    error.output.payload.dbError = err;
+                    error.output.payload.message = '查询学生数据发生错误';
+                    cb(error);
+                })
+            }
+        ], (err, result) => {
+            if (err) {
+                reply(err)
+            } else {
+                debug('findOneById student', result)
+                reply(result)
+            }
+        });
     }
 }
 

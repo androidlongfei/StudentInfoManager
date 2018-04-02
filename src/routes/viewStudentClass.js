@@ -25,5 +25,22 @@ module.exports = (() => {
                 }
             }
         }
+    }, {
+        method: 'GET',
+        path: '/student/{studentId}/class',
+        config: {
+            handler: viewStudentClassController.findOneById,
+            description: '根据学生ID获取学生信息',
+            notes: '返回学生信息',
+            tags: ['api'],
+            response: {
+                // schema: schemaClassModel
+            },
+            validate: {
+                params: {
+                    studentId: Joi.number().integer().required()
+                }
+            }
+        }
     }]
 })()
