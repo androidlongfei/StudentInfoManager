@@ -11,6 +11,8 @@ const User = require('../models/User');
 
 const setting = require('../config/setting');
 const role = require('../config/role');
+import Sequelize from 'Sequelize';
+const Op = Sequelize.Op;
 
 const teacherMethods = {
     // 创建
@@ -216,6 +218,58 @@ const teacherMethods = {
             } else {
                 debug('findOneById student', result)
                 reply(result)
+            }
+        });
+    },
+    // 分页查询
+    count(request, reply) {
+        debug('count-------------', request.query);
+        let queryObj = {};
+        let filterWhere = {}
+        if (request.query.teacherNo) {
+            filterWhere.teacherNo = {
+                [Op.like]: `%${request.query.teacherNo}%`
+            }
+        }
+        // 模糊匹配 %value%
+        if (request.query.department) {
+            filterWhere.department = {
+                [Op.like]: `%${request.query.department}%`
+            }
+        }
+        // 按照时间排序(DESC:降序,ASC:升序)
+        queryObj.order = [
+            ['createdAt', 'DESC']
+        ]
+        if (request.query.currentPage && request.query.pageSize) {
+            let currentPage = request.query.currentPage
+            let pageSize = request.query.pageSize
+            let offset = (currentPage - 1) * pageSize
+            // offset是跳过offset条数据开始
+            queryObj.offset = offset
+            queryObj.limit = pageSize
+        }
+        queryObj.where = filterWhere
+        debug('queryObj', queryObj)
+        async.waterfall([ // 查询班级
+            (cb) => {
+                Teacher.findAndCountAll(queryObj).then(function (model) {
+                    reply(model)
+                }).catch(function (err) {
+                    // console.log('err', err);
+                    let error = Boom.notAcceptable('查询失败')
+                    error.output.payload.code = 1004;
+                    error.output.payload.dbError = err;
+                    debug('createClass err', err);
+                    reply(error);
+                });
+            }
+        ], (err, result) => {
+            if (err) {
+                reply(err)
+            } else {
+                debug('result', result.toJSON())
+                reply(result.toJSON())
             }
         });
     }

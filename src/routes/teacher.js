@@ -101,5 +101,25 @@ module.exports = (() => {
                 }
             }
         }
+    }, {
+        method: 'GET',
+        path: '/teacher/count',
+        config: {
+            handler: teacherController.count,
+            description: '根据条件分页获取教师列表',
+            notes: '返回教师列表',
+            tags: ['api'],
+            response: {
+                // schema: schemaClassModel
+            },
+            validate: {
+                query: {
+                    teacherNo: Joi.string().description('教师编号'),
+                    department: Joi.string().description('所属院系'),
+                    currentPage: Joi.number().integer().description('当前页'),
+                    pageSize: Joi.number().integer().description('每页条数')
+                }
+            }
+        }
     }]
 })()
