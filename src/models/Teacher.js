@@ -9,12 +9,12 @@ import dbConn from '../lib/db/dbConn'
 // import moment from 'moment'
 import Sequelize from 'sequelize'
 // import User from './User'
-const debug = require('debug')('app:models:Student');
+const debug = require('debug')('app:models:Teacher');
 const startNo = 'T'
 
 const Teacher = dbConn.define('teacher', {
     idCardNo: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         unique: true,
         allowNull: false,
         field: 'id_card_no',
@@ -90,7 +90,7 @@ const Teacher = dbConn.define('teacher', {
 })
 
 let create = (model) => {
-    debug('创建教师:', model.toJSON())
+    // debug('创建教师:', model.toJSON())
 }
 
 let update = (student) => {

@@ -38,7 +38,7 @@ const teacherMethods = {
                     debug('create teacher success', modelJSON);
                     cb(null, modelJSON)
                 }).catch(err => {
-                    // console.log('err', err);
+                    console.log('err', err);
                     let error = Boom.notAcceptable('创建教师失败');
                     error.output.payload.code = 1004;
                     error.output.payload.dbError = err;
