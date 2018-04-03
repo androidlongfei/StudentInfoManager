@@ -74,14 +74,17 @@ module.exports = (() => {
                     studentId: Joi.number().integer().required(),
                 },
                 payload: {
-                    idCardNo: Joi.number().integer().required(),
-                    name: Joi.string().required(),
-                    gender: Joi.number().integer().required(),
-                    birth: Joi.string().required(),
+                    idCardNo: Joi.string(),
+                    name: Joi.string(),
+                    age: Joi.number().integer(),
+                    gender: Joi.number().integer(),
+                    birth: Joi.string(),
                     telephone: Joi.string(),
                     admission: Joi.string(),
                     classId: Joi.number().integer(),
-                    address: Joi.string()
+                    address: Joi.string(),
+                    department: Joi.string(),
+                    professional: Joi.string()
                 }
 
             }
