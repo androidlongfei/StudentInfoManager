@@ -26,8 +26,10 @@ const teacherMethods = {
                     birth: postParameter.birth,
                     telephone: postParameter.telephone,
                     department: postParameter.department,
-                    address: postParameter.address
+                    address: postParameter.address,
+                    age: postParameter.age
                 }
+                debug('create teacher', postParameter)
                 Teacher.create(newModel).then(model => {
                     model.teacherNo = model.generateTeacherNo
                     debug('model.teacherNo', model.teacherNo)

@@ -38,6 +38,10 @@ const Teacher = dbConn.define('teacher', {
         type: Sequelize.STRING,
         comment: '职称'
     },
+    age: {
+        type: Sequelize.INTEGER,
+        comment: '年龄'
+    },
     gender: {
         type: Sequelize.INTEGER,
         comment: '性别'
