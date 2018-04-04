@@ -2,15 +2,6 @@ const teacherController = require('../controllers/teacher');
 const Joi = require('joi');
 // const debug = require('debug')('app:routes:user');
 
-const schemaStudentModel = Joi.object({
-    name: Joi.string().description('学生名'),
-    note: Joi.string().description('班级备注'),
-    departmentsNo: Joi.any().description('所属院系'),
-    id: Joi.number().integer().description('班级ID'),
-    createdAt: Joi.date().description('创建时间'),
-    updatedAt: Joi.date().description('更新时间')
-})
-
 module.exports = (() => {
     return [{
         // 创建
@@ -26,7 +17,7 @@ module.exports = (() => {
             },
             validate: {
                 payload: {
-                    idCardNo: Joi.number().required(),
+                    idCardNo: Joi.string().required(),
                     name: Joi.string().required(),
                     title: Joi.string().required(),
                     gender: Joi.number().integer().required(),
@@ -72,10 +63,11 @@ module.exports = (() => {
                     teacherId: Joi.number().integer().required(),
                 },
                 payload: {
-                    idCardNo: Joi.number().integer(),
+                    idCardNo: Joi.string(),
                     name: Joi.string(),
                     title: Joi.string(),
                     gender: Joi.number().integer(),
+                    age: Joi.number().integer(),
                     birth: Joi.string(),
                     telephone: Joi.string(),
                     department: Joi.string(),

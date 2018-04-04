@@ -10,7 +10,7 @@ import gender from '../config/gender'
 // import moment from 'moment'
 import Sequelize from 'sequelize'
 // import User from './User'
-const debug = require('debug')('app:models:Teacher');
+// const debug = require('debug')('app:models:Teacher');
 const startNo = 'T'
 
 const Teacher = dbConn.define('teacher', {

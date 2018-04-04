@@ -175,19 +175,67 @@ const teacherMethods = {
                 },
                 // 2.更新信息
                 (targetModel, cb) => {
+                    if (request.payload.idCardNo) {
+                        targetModel.idCardNo = request.payload.idCardNo;
+                    }
                     if (request.payload.name) {
                         targetModel.name = request.payload.name;
                     }
-                    if (request.payload.departments) {
-                        targetModel.department = request.payload.department;
+                    if (request.payload.gender) {
+                        targetModel.gender = request.payload.gender;
                     }
                     if (request.payload.title) {
                         targetModel.title = request.payload.title;
                     }
+                    if (request.payload.birth) {
+                        targetModel.birth = request.payload.birth;
+                    }
+                    if (request.payload.telephone) {
+                        targetModel.telephone = request.payload.telephone;
+                    }
+                    if (request.payload.department) {
+                        targetModel.department = request.payload.department;
+                    }
+                    if (request.payload.address) {
+                        targetModel.address = request.payload.address;
+                    }
+                    if (request.payload.age) {
+                        targetModel.age = request.payload.age;
+                    }
                     // debug('保存前', classModel)
                     targetModel.save().then(updateModel => {
                         let updateModelJSON = updateModel.toJSON();
-                        cb(null, updateModelJSON);
+                        if (request.payload.idCardNo) {
+                            debug('-----', request.payload.idCardNo, updateModelJSON.id)
+                            // 更新用户名,重置密码
+                            User.findOne({
+                                where: {
+                                    roleType: role.type.TEACHER,
+                                    targetId: updateModelJSON.id
+                                }
+                            }).then(user => {
+                                if (user) {
+                                    user.token = null
+                                    // user.resetPassword = true
+                                    // user.password = setting.detaultPwd
+                                    user.username = request.payload.idCardNo
+                                    user.save().then(newUser => {
+                                        // console.log('newUser-----------+++---', newUser)
+                                        cb(null, updateModelJSON);
+                                    }).catch(err => {
+                                        let error = Boom.badImplementation();
+                                        error.output.payload.code = 1012;
+                                        error.output.payload.dbError = err;
+                                        error.output.payload.message = '查询数据发生错误';
+                                        cb(null, updateModelJSON);
+                                    })
+                                } else {
+                                    cb(null, updateModelJSON);
+                                }
+                            })
+                        } else {
+                            cb(null, updateModelJSON);
+                        }
                     }).catch(err => {
                         let error = Boom.badImplementation();
                         error.output.payload.code = 1046;
