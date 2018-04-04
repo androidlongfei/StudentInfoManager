@@ -6,6 +6,7 @@
  */
 
 import dbConn from '../lib/db/dbConn'
+import gender from '../config/gender'
 // import moment from 'moment'
 import Sequelize from 'sequelize'
 // import User from './User'
@@ -79,6 +80,12 @@ const Teacher = dbConn.define('teacher', {
         generateTeacherNo() {
             if (this.dataValues.id) {
                 return startNo + this.dataValues.id
+            }
+        },
+        genderValue() {
+            if (this.gender) {
+                console.log('genderValue', this.dataValues.gender)
+                return gender.converTypeToValue(this.dataValues.gender)
             }
         }
     },

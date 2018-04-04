@@ -237,6 +237,11 @@ const teacherMethods = {
                 [Op.like]: `%${request.query.department}%`
             }
         }
+        if (request.query.name) {
+            filterWhere.name = {
+                [Op.like]: `%${request.query.name}%`
+            }
+        }
         // 按照时间排序(DESC:降序,ASC:升序)
         queryObj.order = [
             ['createdAt', 'DESC']

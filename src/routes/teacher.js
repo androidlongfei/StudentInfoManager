@@ -116,6 +116,7 @@ module.exports = (() => {
                 query: {
                     teacherNo: Joi.string().description('教师编号'),
                     department: Joi.string().description('所属院系'),
+                    name: Joi.string().description('名字'),
                     currentPage: Joi.number().integer().description('当前页'),
                     pageSize: Joi.number().integer().description('每页条数')
                 }
