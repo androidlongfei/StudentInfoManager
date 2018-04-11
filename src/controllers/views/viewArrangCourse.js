@@ -18,7 +18,8 @@ const ViewStudentMethods = {
         let queryObj = {};
         let filterWhere = {}
         _.each(request.query, (value, key) => {
-            if (key !== 'currentPage' || key !== 'pageSize') {
+            // debug('key', key)
+            if (key !== 'currentPage' && key !== 'pageSize') {
                 if (value) {
                     filterWhere[key] = {
                         [Op.like]: `%${value}%`
