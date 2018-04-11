@@ -26,13 +26,16 @@ module.exports = (() => {
             },
             validate: {
                 payload: {
-                    courseId: Joi.number().integer().required(),
+                    courseName: Joi.string().required(),
+                    courseCredits: Joi.string().required(),
+                    department: Joi.string().required(),
+                    professional: Joi.string().required(),
                     classId: Joi.number().integer().required(),
                     teacherId: Joi.number().integer().required(),
                     address: Joi.string().required(),
                     time: Joi.string().required(),
-                    startTime: Joi.string().required(),
-                    endTime: Joi.string().required(),
+                    startTime: Joi.string(),
+                    endTime: Joi.string(),
                     semester: Joi.string().required()
                 }
             }

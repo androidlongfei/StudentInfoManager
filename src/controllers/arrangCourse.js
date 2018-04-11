@@ -2,7 +2,7 @@
 
 const debug = require('debug')('app:controllers:teacher');
 const async = require('async');
-// const _ = require('underscore');
+const _ = require('underscore');
 const Boom = require('boom');
 // const moment = require('moment');
 
@@ -13,18 +13,8 @@ const ArrangCourseMethods = {
     create(request, reply) {
         async.waterfall([
             (cb) => {
-                let postParameter = request.payload
-                let newModel = {
-                    courseId: postParameter.courseId,
-                    classId: postParameter.classId,
-                    teacherId: postParameter.teacherId,
-                    address: postParameter.address,
-                    time: postParameter.time,
-                    startTime: postParameter.startTime,
-                    endTime: postParameter.endTime,
-                    semester: postParameter.semester
-                }
-                ArrangCourse.create(newModel).then(model => {
+                debug('create', request.payload)
+                ArrangCourse.create(request.payload).then(model => {
                     let modelJSON = model.toJSON();
                     debug('create success', modelJSON);
                     cb(null, modelJSON)
@@ -121,31 +111,12 @@ const ArrangCourseMethods = {
                 },
                 // 2.更新信息
                 (targetModel, cb) => {
-                    if (request.payload.courseId) {
-                        targetModel.courseId = request.payload.courseId;
-                    }
-                    if (request.payload.classId) {
-                        targetModel.classId = request.payload.classId;
-                    }
-                    if (request.payload.teacherId) {
-                        targetModel.teacherId = request.payload.teacherId;
-                    }
-                    if (request.payload.address) {
-                        targetModel.address = request.payload.address;
-                    }
-                    if (request.payload.time) {
-                        targetModel.time = request.payload.time;
-                    }
-                    if (request.payload.startTime) {
-                        targetModel.startTime = request.payload.startTime;
-                    }
-                    if (request.payload.endTime) {
-                        targetModel.endTime = request.payload.endTime;
-                    }
-                    if (request.payload.semester) {
-                        targetModel.semester = request.payload.semester;
-                    }
-                    // debug('保存前', classModel)
+                    _.each(request.payload, (value, item) => {
+                        if (value) {
+                            targetModel[item] = value
+                        }
+                    })
+                    debug('保存前', targetModel)
                     targetModel.save().then(updateModel => {
                         let updateModelJSON = updateModel.toJSON();
                         cb(null, updateModelJSON);
@@ -183,7 +154,6 @@ const ArrangCourseMethods = {
     }
 };
 
-// 查询一个学生
 function findOne(id, cb) {
     ArrangCourse.findOne({
         where: {

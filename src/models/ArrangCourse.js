@@ -11,11 +11,26 @@ import Sequelize from 'sequelize'
 // const debug = require('debug')('app:models:ArrangCourse');
 
 const ArrangCourse = dbConn.define('arrang_course', {
-    courseId: {
-        type: Sequelize.INTEGER,
+    courseName: {
+        type: Sequelize.STRING,
         allowNull: false,
-        field: 'course_id',
-        comment: '课程ID'
+        field: 'course_name',
+        comment: '课程名字'
+    },
+    courseCredits: {
+        type: Sequelize.INTEGER,
+        field: 'course_credits',
+        comment: '课程学分'
+    },
+    department: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        comment: '所属院系'
+    },
+    professional: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        comment: '所属专业'
     },
     classId: {
         type: Sequelize.INTEGER,
@@ -25,6 +40,7 @@ const ArrangCourse = dbConn.define('arrang_course', {
     },
     teacherId: {
         type: Sequelize.INTEGER,
+        allowNull: false,
         field: 'teacher_id',
         comment: '上课老师'
     },
