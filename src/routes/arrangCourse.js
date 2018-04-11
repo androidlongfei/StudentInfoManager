@@ -33,7 +33,7 @@ module.exports = (() => {
                     classId: Joi.number().integer().required(),
                     teacherId: Joi.number().integer().required(),
                     address: Joi.string().required(),
-                    time: Joi.string().required(),
+                    time: Joi.array(),
                     startTime: Joi.string(),
                     endTime: Joi.string(),
                     semester: Joi.string().required()
