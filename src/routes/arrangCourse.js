@@ -74,10 +74,14 @@ module.exports = (() => {
                     arrangCourseId: Joi.number().integer().required(),
                 },
                 payload: {
-                    courseId: Joi.number().integer(),
-                    teacherId: Joi.number().integer(),
+                    courseName: Joi.string(),
+                    courseCredits: Joi.string(),
+                    department: Joi.string(),
+                    professional: Joi.string(),
+                    courseId: Joi.number(),
+                    teacherId: Joi.number(),
                     address: Joi.string(),
-                    time: Joi.string(),
+                    time: Joi.array(),
                     startTime: Joi.string(),
                     endTime: Joi.string(),
                     semester: Joi.string()
