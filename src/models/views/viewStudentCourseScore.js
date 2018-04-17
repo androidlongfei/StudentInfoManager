@@ -8,7 +8,7 @@
 import dbConn from '../../lib/db/dbConn'
 import Sequelize from 'sequelize'
 
-const ViewStudentCourseCourse = dbConn.define('viewStudentCourseCourse', {
+const ViewStudentCourseScore = dbConn.define('viewStudentCourseScore', {
     arrangCourseId: {
         type: Sequelize.INTEGER,
         field: 'arrang_course_id',
@@ -63,8 +63,13 @@ const ViewStudentCourseCourse = dbConn.define('viewStudentCourseCourse', {
         comment: '学号'
     },
     score: {
-        type: Sequelize.DATE,
+        type: Sequelize.INTEGER,
         comment: '成绩'
+    },
+    scoreId: {
+        type: Sequelize.INTEGER,
+        field: 'score_id',
+        comment: '成绩ID'
     },
     createTime: {
         type: Sequelize.DATE,
@@ -72,7 +77,7 @@ const ViewStudentCourseCourse = dbConn.define('viewStudentCourseCourse', {
         comment: '创建时间'
     }
 }, {
-    tableName: 'view_student_course',
+    tableName: 'view_student_course_score',
     // 属性get方法
     getterMethods: {
 
@@ -86,5 +91,5 @@ const ViewStudentCourseCourse = dbConn.define('viewStudentCourseCourse', {
     comment: '排课视图'
 })
 
-module.exports = ViewStudentCourseCourse
-ViewStudentCourseCourse.removeAttribute('id')
+module.exports = ViewStudentCourseScore
+ViewStudentCourseScore.removeAttribute('id')
