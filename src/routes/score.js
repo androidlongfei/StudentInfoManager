@@ -28,7 +28,7 @@ module.exports = (() => {
                 payload: {
                     arrangCourseId: Joi.number().integer().required(),
                     studentId: Joi.number().integer().required(),
-                    score: Joi.string().required()
+                    score: Joi.number().integer().required()
                 }
             }
         }

@@ -22,7 +22,8 @@ const Score = dbConn.define('score', {
         comment: '学生ID'
     },
     score: {
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
+        default: 0,
         comment: '成绩'
     },
     createdAt: {
