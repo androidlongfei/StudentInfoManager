@@ -31,10 +31,28 @@ module.exports = (() => {
         }
     }, {
         method: 'GET',
-        path: '/score/{scoreId}/view',
+        path: '/score/{studentId}/{arrangCourseId}',
         config: {
             handler: viewStudentCourseScoreController.findOneById,
-            description: '根据成绩ID获取成绩信息',
+            description: '根据学生ID和课程ID获取成绩视图信息',
+            notes: '返回成绩信息',
+            tags: ['api'],
+            response: {
+                // schema: schemaClassModel
+            },
+            validate: {
+                params: {
+                    studentId: Joi.number().integer().required(),
+                    arrangCourseId: Joi.number().integer().required()
+                }
+            }
+        }
+    }, {
+        method: 'GET',
+        path: '/score/{scoreId}/view',
+        config: {
+            handler: viewStudentCourseScoreController.findOne,
+            description: '根据成绩ID获取成绩视图信息',
             notes: '返回成绩信息',
             tags: ['api'],
             response: {

@@ -14,7 +14,7 @@ const Op = Sequelize.Op;
 const ViewStudentMethods = {
     // 分页查询
     count(request, reply) {
-        debug('count-------------', request.query);
+        debug('count------------->', request.query);
         let queryObj = {};
         let filterWhere = {}
         _.each(request.query, (value, key) => {
@@ -44,8 +44,9 @@ const ViewStudentMethods = {
         debug('queryObj', queryObj)
         async.waterfall([ // 查询班级
             (cb) => {
-                ViewStudentCourseScore.findAndCountAll(queryObj).then(function (classModel) {
-                    reply(classModel)
+                ViewStudentCourseScore.findAndCountAll(queryObj).then((scoreModel) => {
+                    debug('result-----', scoreModel.count)
+                    reply(scoreModel)
                 }).catch(function (err) {
                     // console.log('err', err);
                     let error = Boom.notAcceptable('查询失败')
@@ -59,13 +60,48 @@ const ViewStudentMethods = {
             if (err) {
                 reply(err)
             } else {
-                debug('result', result.toJSON())
                 reply(result.toJSON())
             }
         })
     },
     // 根据ID查询信息
     findOneById(request, reply) {
+        async.waterfall([ // 查询
+            (cb) => {
+                // debug('findOneClass', id)
+                ViewStudentCourseScore.findOne({
+                    where: {
+                        studentId: parseInt(request.params.studentId),
+                        arrangCourseId: parseInt(request.params.arrangCourseId)
+                    }
+                }).then((targetModel) => {
+                    // debug('classModel', classModel)
+                    if (!targetModel) {
+                        let error = Boom.notAcceptable('查询数据发生错误, 不存在');
+                        error.output.payload.code = 1029;
+                        cb(error);
+                    } else {
+                        cb(null, targetModel.toJSON());
+                    }
+                }).catch((err) => {
+                    debug('find', err);
+                    let error = Boom.badImplementation();
+                    error.output.payload.code = 1030;
+                    error.output.payload.dbError = err;
+                    error.output.payload.message = '查询数据发生错误';
+                    cb(error);
+                })
+            }
+        ], (err, result) => {
+            if (err) {
+                reply(err)
+            } else {
+                debug('findOneById', result)
+                reply(result)
+            }
+        });
+    },
+    findOne(request, reply) {
         async.waterfall([ // 查询
             (cb) => {
                 // debug('findOneClass', id)
@@ -95,7 +131,7 @@ const ViewStudentMethods = {
             if (err) {
                 reply(err)
             } else {
-                debug('findOneById', result)
+                debug('findOne', result)
                 reply(result)
             }
         });
