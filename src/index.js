@@ -63,7 +63,7 @@ server.ext({
             request.headers.token = 'not be verified!'
             return reply.continue()
         } else {
-            let test = true
+            let test = false
             if (test) {
                 return reply.continue();
             }
@@ -73,7 +73,7 @@ server.ext({
             jwt.verify(token, setting.SECRET, (err, decoded) => {
                 // debug('decoded', decoded)
                 if (err) {
-                    debug('token失败--------', err)
+                    // debug('token失败--------', err)
                     let error = Boom.unauthorized('身份验证失败！登录超时，请重新登录！')
                     error.output.payload.code = 1001;
                     reply(error)

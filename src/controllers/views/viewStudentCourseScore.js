@@ -30,7 +30,7 @@ const ViewStudentMethods = {
 
         // 按照时间排序(DESC:降序,ASC:升序)
         queryObj.order = [
-            ['createTime', 'DESC']
+            ['studentNo', 'DESC']
         ]
         if (request.query.currentPage && request.query.pageSize) {
             let currentPage = request.query.currentPage

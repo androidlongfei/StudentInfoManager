@@ -168,7 +168,7 @@ const userMethods = {
     },
     // 更改密码
     changePassword(request, reply) {
-        // reply(request.payload);
+        reply('changePassword---------', request.payload);
         async.waterfall([
             // 验证身份
             (cb) => {
@@ -215,23 +215,26 @@ const userMethods = {
             },
             // 修改密码
             (user, cb) => {
+                debug('修改密码---------')
                 user.password = request.payload.newPassword;
                 user.token = null;
                 user.resetPassword = true;
                 user.save().then(newPwdUser => {
-                    // debug(uuu);
+                    debug('修改密码成功---------')
                     let userInfoJSON = newPwdUser.toJSON();
                     delete userInfoJSON.password;
                     cb(null, userInfoJSON);
                 }).catch(err => {
+                    // debug('修改密码失败---------')
                     let error = Boom.badImplementation();
                     error.output.payload.code = 1012;
                     error.output.payload.dbError = err;
                     error.output.payload.message = '查询数据发生错误';
-                    cb(error);
+                    // cb(error)
                 })
             }
         ], (err, result) => {
+            debug('修改密码-----------------------返回', result)
             if (err) {
                 reply(err);
             } else {
