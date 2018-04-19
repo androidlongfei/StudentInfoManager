@@ -51,7 +51,7 @@ const userMethods = {
                         cb(error);
                     }
                 }).catch((err) => {
-                    let error = Boom.badImplementation();
+                    let error = Boom.badData();
                     error.output.payload.code = 10001;
                     error.output.payload.dbError = err;
                     error.output.payload.message = '查询数据发生错误';
@@ -63,7 +63,7 @@ const userMethods = {
                 debug(`2.验证密码===>用户输入:${password},数据库:${user.password}`)
                 bcrypt.compare(password, user.password, (err, isPasswordPassed) => {
                     if (err) {
-                        let error = Boom.badImplementation();
+                        let error = Boom.badData();
                         error.output.payload.code = 10001;
                         error.output.payload.message = '验证密码时出错，请联系管理员';
                         cb(error)
@@ -392,8 +392,8 @@ const userMethods = {
     resetPassword(request, reply) {
         async.waterfall([
             // 查询用户
-            function (cb) {
-                User.findById(request.params.userId).then(function (user) {
+            (cb) => {
+                User.findById(request.params.userId).then(user => {
                     if (!user) {
                         let error = Boom.notAcceptable('用户不存在');
                         error.output.payload.code = 1013;
@@ -409,7 +409,7 @@ const userMethods = {
                     } else {
                         cb(null, user)
                     }
-                }).catch(function (err) {
+                }).catch(err => {
                     let error = Boom.badImplementation();
                     error.output.payload.code = 1015;
                     error.output.payload.dbError = err;
@@ -417,9 +417,10 @@ const userMethods = {
                     cb(error);
                 });
             },
-            function (user, cb) {
+            (user, cb) => {
                 user.password = request.payload.newPassword;
                 user.token = null;
+                user.resetPassword = true;
                 user.save().then(function (newPwdUser) {
                     // debug(uuu);
                     let userInfoJSON = newPwdUser.toJSON();
@@ -433,7 +434,7 @@ const userMethods = {
                     cb(error);
                 });
             }
-        ], function (err, result) {
+        ], (err, result) => {
             if (err) {
                 reply(err)
             } else {
@@ -522,60 +523,6 @@ const userMethods = {
                 reply(result)
             }
         });
-    },
-    userFindAll: function (request, reply) {
-        let filter = request.query.filter;
-        debug(filter);
-        if (filter) {
-            filter.attributes = {
-                exclude: ['password']
-            };
-        } else {
-            filter = {
-                attributes: {
-                    exclude: ['password']
-                }
-            };
-        }
-        User.findAll(filter).then(function (users) {
-            reply(users);
-        }).catch(function (err) {
-            let error = Boom.badImplementation();
-            error.output.payload.code = 7001;
-            error.output.payload.dbError = err;
-            error.output.payload.message = '查询数据发生错误';
-            reply(error);
-        })
-    },
-    userCount: function (request, reply) {
-        let filter = request.query.filter;
-        debug(filter);
-        User.count(filter).then(function (usersCount) {
-            reply({ count: usersCount });
-        }).catch(function (err) {
-            let error = Boom.badImplementation();
-            error.output.payload.code = 7002;
-            error.output.payload.dbError = err;
-            error.output.payload.message = '查询数据发生错误';
-            reply(error);
-        })
-    },
-
-    userIsExist: function (request, reply) {
-        let filter = request.query.filter;
-        User.findOne(filter).then(function (user) {
-            if (user) {
-                reply({ exist: true });
-            } else {
-                reply({ exist: false });
-            }
-        }).catch(function (err) {
-            let error = Boom.badImplementation();
-            error.output.payload.code = 7001;
-            error.output.payload.dbError = err;
-            error.output.payload.message = '查询数据发生错误';
-            reply(error);
-        })
     }
 };
 

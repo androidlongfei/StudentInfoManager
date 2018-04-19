@@ -83,8 +83,7 @@ module.exports = (function () {
                     }
                 }
             }
-        },
-        {
+        }, {
             // 创建用户路由
             method: 'POST',
             path: '/user',
@@ -100,6 +99,63 @@ module.exports = (function () {
                     payload: {
                         username: Joi.string().required(),
                         password: Joi.string().required()
+                    }
+                }
+            }
+        }, {
+            // 重置密码
+            method: 'POST',
+            path: '/user/{userId}/resetPassword',
+            config: {
+                handler: userController.resetPassword,
+                description: '重置密码',
+                notes: '返回用户信息',
+                tags: ['api'],
+                response: {
+                    // schema: generalUserModel,
+                },
+                validate: {
+                    params: {
+                        userId: Joi.number().integer().required(),
+                    },
+                    payload: {
+                        newPassword: Joi.string().required()
+                    }
+                }
+            }
+        }, {
+            // 禁用账户
+            method: 'PUT',
+            path: '/user/{userId}/disableUser',
+            config: {
+                handler: userController.disableUser,
+                description: '禁用账户',
+                notes: '返回用户信息',
+                tags: ['api'],
+                response: {
+                    // schema: generalUserModel,
+                },
+                validate: {
+                    params: {
+                        userId: Joi.number().integer().required(),
+                    }
+                }
+            }
+        }, {
+            // 启用账户
+            method: 'PUT',
+            path: '/user/{userId}/enableUser',
+            config: {
+                handler: userController.enableUser,
+                description: '启用账户',
+                notes: '返回用户信息',
+                tags: ['api'],
+                response: {
+                    // schema: generalUserModel,
+                },
+                validate: {
+                    params: {
+                        userId: Joi.number().integer().required(),
                     }
                 }
             }
