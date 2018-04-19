@@ -8,6 +8,7 @@
  */
 
 import dbConn from '../lib/db/dbConn'
+import gender from '../config/gender'
 // import moment from 'moment'
 import Sequelize from 'sequelize'
 // import User from './User'
@@ -16,7 +17,7 @@ const startNo = 'A'
 
 const AcdemicDean = dbConn.define('acdemic_dean', {
     idCardNo: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         unique: true,
         allowNull: false,
         field: 'id_card_no',
@@ -33,6 +34,10 @@ const AcdemicDean = dbConn.define('acdemic_dean', {
         allowNull: false,
         comment: '名字'
     },
+    age: {
+        type: Sequelize.INTEGER,
+        comment: '年龄'
+    },
     gender: {
         type: Sequelize.INTEGER,
         comment: '性别'
@@ -44,6 +49,10 @@ const AcdemicDean = dbConn.define('acdemic_dean', {
     telephone: {
         type: Sequelize.STRING,
         comment: '电话'
+    },
+    address: {
+        type: Sequelize.JSON,
+        comment: '居住地址'
     },
     department: {
         type: Sequelize.STRING,
@@ -66,6 +75,12 @@ const AcdemicDean = dbConn.define('acdemic_dean', {
         generateAcdemicDeanNo() {
             if (this.dataValues.id) {
                 return startNo + this.dataValues.id
+            }
+        },
+        genderValue() {
+            if (this.gender) {
+                console.log('genderValue', this.dataValues.gender)
+                return gender.converTypeToValue(this.dataValues.gender)
             }
         }
     },

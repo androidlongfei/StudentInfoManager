@@ -31,7 +31,9 @@ module.exports = (() => {
                     gender: Joi.number().required(),
                     birth: Joi.string().required(),
                     telephone: Joi.string(),
-                    department: Joi.string()
+                    department: Joi.string(),
+                    address: Joi.string(),
+                    age: Joi.number().integer().required()
                 }
             }
         }
@@ -69,13 +71,14 @@ module.exports = (() => {
                     acdemicDeanId: Joi.number().integer().required(),
                 },
                 payload: {
-                    idCardNo: Joi.number().integer(),
+                    idCardNo: Joi.number(),
                     name: Joi.string(),
-                    title: Joi.string(),
-                    gender: Joi.number().integer(),
+                    gender: Joi.number(),
                     birth: Joi.string(),
                     telephone: Joi.string(),
-                    department: Joi.string()
+                    department: Joi.string(),
+                    address: Joi.string(),
+                    age: Joi.number().integer()
                 }
 
             }
@@ -94,6 +97,27 @@ module.exports = (() => {
             validate: {
                 params: {
                     acdemicDeanId: Joi.number().integer().required()
+                }
+            }
+        }
+    }, {
+        method: 'GET',
+        path: '/acdemicDean/count',
+        config: {
+            handler: acdemicDeanController.count,
+            description: '根据条件分页获取教务员列表',
+            notes: '返回教务员列表',
+            tags: ['api'],
+            response: {
+                // schema: schemaClassModel
+            },
+            validate: {
+                query: {
+                    acdemicDeanNo: Joi.string().description('教务员编号'),
+                    department: Joi.string().description('所属院系'),
+                    name: Joi.string().description('名字'),
+                    currentPage: Joi.number().integer().description('当前页'),
+                    pageSize: Joi.number().integer().description('每页条数')
                 }
             }
         }

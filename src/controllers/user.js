@@ -389,7 +389,7 @@ const userMethods = {
         });
     },
     // 重置密码
-    resetPassword: function (request, reply) {
+    resetPassword(request, reply) {
         async.waterfall([
             // 查询用户
             function (cb) {

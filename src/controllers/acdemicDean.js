@@ -1,6 +1,6 @@
 'use strict';
 
-const debug = require('debug')('app:controllers:teacher');
+const debug = require('debug')('app:controllers:acdemicDean');
 const async = require('async');
 // const _ = require('underscore');
 const Boom = require('boom');
@@ -11,6 +11,8 @@ const User = require('../models/User');
 
 const setting = require('../config/setting');
 const role = require('../config/role');
+import Sequelize from 'Sequelize';
+const Op = Sequelize.Op;
 
 const acdemicDeanMethods = {
     // 创建
@@ -24,7 +26,9 @@ const acdemicDeanMethods = {
                     gender: postParameter.gender,
                     birth: postParameter.birth,
                     telephone: postParameter.telephone,
-                    department: postParameter.department
+                    department: postParameter.department,
+                    address: postParameter.address,
+                    age: postParameter.age
                 }
                 AcdemicDean.create(newModel).then(model => {
                     model.acdemicDeanNo = model.generateAcdemicDeanNo
@@ -34,7 +38,7 @@ const acdemicDeanMethods = {
                     debug('create success', modelJSON);
                     cb(null, modelJSON)
                 }).catch(err => {
-                    // console.log('err', err);
+                    console.log('err', err);
                     let error = Boom.notAcceptable('创建教务员失败');
                     error.output.payload.code = 1004;
                     error.output.payload.dbError = err;
@@ -169,19 +173,64 @@ const acdemicDeanMethods = {
                 },
                 // 2.更新信息
                 (targetModel, cb) => {
+                    if (request.payload.idCardNo) {
+                        targetModel.idCardNo = request.payload.idCardNo;
+                    }
                     if (request.payload.name) {
                         targetModel.name = request.payload.name;
                     }
-                    if (request.payload.departments) {
+                    if (request.payload.gender) {
+                        targetModel.gender = request.payload.gender;
+                    }
+                    if (request.payload.birth) {
+                        targetModel.birth = request.payload.birth;
+                    }
+                    if (request.payload.telephone) {
+                        targetModel.telephone = request.payload.telephone;
+                    }
+                    if (request.payload.department) {
                         targetModel.department = request.payload.department;
                     }
-                    if (request.payload.title) {
-                        targetModel.title = request.payload.title;
+                    if (request.payload.address) {
+                        targetModel.address = request.payload.address;
+                    }
+                    if (request.payload.age) {
+                        targetModel.age = request.payload.age;
                     }
                     // debug('保存前', classModel)
                     targetModel.save().then(updateModel => {
                         let updateModelJSON = updateModel.toJSON();
-                        cb(null, updateModelJSON);
+                        if (request.payload.idCardNo) {
+                            debug('-----', request.payload.idCardNo, updateModelJSON.id)
+                            // 更新用户名,重置密码
+                            User.findOne({
+                                where: {
+                                    roleType: role.type.ACDEMIC,
+                                    targetId: updateModelJSON.id
+                                }
+                            }).then(user => {
+                                if (user) {
+                                    user.token = null
+                                    // user.resetPassword = true
+                                    // user.password = setting.detaultPwd
+                                    user.username = request.payload.idCardNo
+                                    user.save().then(newUser => {
+                                        // console.log('newUser-----------+++---', newUser)
+                                        cb(null, updateModelJSON);
+                                    }).catch(err => {
+                                        let error = Boom.badImplementation();
+                                        error.output.payload.code = 1012;
+                                        error.output.payload.dbError = err;
+                                        error.output.payload.message = '查询数据发生错误';
+                                        cb(null, updateModelJSON);
+                                    })
+                                } else {
+                                    cb(null, updateModelJSON);
+                                }
+                            })
+                        } else {
+                            cb(null, updateModelJSON);
+                        }
                     }).catch(err => {
                         let error = Boom.badImplementation();
                         error.output.payload.code = 1046;
@@ -212,6 +261,63 @@ const acdemicDeanMethods = {
             } else {
                 debug('findOneById 教务员', result)
                 reply(result)
+            }
+        });
+    },
+    // 分页查询
+    count(request, reply) {
+        // debug('count-------------', request.query);
+        let queryObj = {};
+        let filterWhere = {}
+        if (request.query.acdemicDeanNo) {
+            filterWhere.acdemicDeanNo = {
+                [Op.like]: `%${request.query.acdemicDeanNo}%`
+            }
+        }
+        // 模糊匹配 %value%
+        if (request.query.department) {
+            filterWhere.department = {
+                [Op.like]: `%${request.query.department}%`
+            }
+        }
+        if (request.query.name) {
+            filterWhere.name = {
+                [Op.like]: `%${request.query.name}%`
+            }
+        }
+        // 按照时间排序(DESC:降序,ASC:升序)
+        queryObj.order = [
+            ['createdAt', 'DESC']
+        ]
+        if (request.query.currentPage && request.query.pageSize) {
+            let currentPage = request.query.currentPage
+            let pageSize = request.query.pageSize
+            let offset = (currentPage - 1) * pageSize
+            // offset是跳过offset条数据开始
+            queryObj.offset = offset
+            queryObj.limit = pageSize
+        }
+        queryObj.where = filterWhere
+        debug('queryObj', queryObj)
+        async.waterfall([ // 查询班级
+            (cb) => {
+                AcdemicDean.findAndCountAll(queryObj).then(function (model) {
+                    reply(model)
+                }).catch(function (err) {
+                    // console.log('err', err);
+                    let error = Boom.notAcceptable('查询失败')
+                    error.output.payload.code = 1004;
+                    error.output.payload.dbError = err;
+                    debug('count err', err);
+                    reply(error);
+                });
+            }
+        ], (err, result) => {
+            if (err) {
+                reply(err)
+            } else {
+                debug('result', result.toJSON())
+                reply(result.toJSON())
             }
         });
     }
