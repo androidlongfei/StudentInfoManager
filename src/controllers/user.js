@@ -511,15 +511,95 @@ const userMethods = {
         })
     },
 
-    findOneById: function (request, reply) {
+    findOneById(request, reply) {
         async.waterfall([ // 查询用户
-            function (cb) {
-                findOneUser(request.params.userId, cb);
+            (cb) => {
+                User.findOne({
+                    where: {
+                        id: parseInt(request.params.userId)
+                    },
+                    attributes: {
+                        exclude: ['password']
+                    }
+                }).then((user) => {
+                    if (!user) {
+                        let error = Boom.notAcceptable('查询用户数据发生错误, 用户不存在');
+                        error.output.payload.code = 1029;
+                        cb(error);
+                    } else {
+                        cb(null, user.toJSON());
+                    }
+                }).catch((err) => {
+                    let error = Boom.badImplementation();
+                    error.output.payload.code = 1030;
+                    error.output.payload.dbError = err;
+                    error.output.payload.message = '查询样本数据发生错误';
+                    cb(error);
+                })
+            },
+            // 获取用户角色基本信息
+            (userInfo, cb) => {
+                userInfo.baseInfo = {}
+                if (!userInfo.targetId) {
+                    cb(null, userInfo)
+                } else {
+                    if (userInfo.roleType === role.type.STUDENT) {
+                        // 学生
+                        // debug('userInfo.targetId', userInfo.targetId)
+                        Student.findOne({
+                            where: {
+                                id: parseInt(userInfo.targetId)
+                            }
+                        }).then(student => {
+                            // debug('student--------', student)
+                            if (student) {
+                                userInfo.baseInfo = student.toJSON()
+                            }
+                            cb(null, userInfo)
+                        }).catch(err => {
+                            debug(err)
+                            cb(null, userInfo)
+                        })
+                    } else if (userInfo.roleType === role.type.TEACHER) {
+                        // 教务员
+                        Teacher.findOne({
+                            where: {
+                                id: parseInt(userInfo.targetId)
+                            }
+                        }).then(teacher => {
+                            debug('teacher--------', teacher)
+                            if (teacher) {
+                                userInfo.baseInfo = teacher.toJSON()
+                            }
+                            cb(null, userInfo)
+                        }).catch(err => {
+                            debug(err)
+                            cb(null, userInfo)
+                        })
+                    } else if (userInfo.roleType === role.type.ACDEMIC) {
+                        // 教师
+                        AcdemicDean.findOne({
+                            where: {
+                                id: parseInt(userInfo.targetId)
+                            }
+                        }).then(acdemicDean => {
+                            debug('AcdemicDean--------', acdemicDean)
+                            if (acdemicDean) {
+                                userInfo.baseInfo = acdemicDean.toJSON()
+                            }
+                            cb(null, userInfo)
+                        }).catch(err => {
+                            debug(err)
+                            cb(null, userInfo)
+                        })
+                    }
+                }
             }
-        ], function (err, result) {
+        ], (err, result) => {
             if (err) {
                 reply(err)
             } else {
+                debug('getUserInfo', result)
                 reply(result)
             }
         });
