@@ -17,6 +17,7 @@ module.exports = (() => {
             validate: {
                 query: {
                     className: Joi.string().description('班级名字'),
+                    classId: Joi.string().description('班级ID'),
                     department: Joi.string().description('所属院系'),
                     teacherName: Joi.string().description('教师名字'),
                     professional: Joi.string().description('专业名字'),

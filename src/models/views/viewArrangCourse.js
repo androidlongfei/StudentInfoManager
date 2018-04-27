@@ -40,6 +40,11 @@ const ViewArrangCourse = dbConn.define('viewArrangCourse', {
         field: 'class_name',
         comment: '班级名字'
     },
+    classId: {
+        type: Sequelize.INTEGER,
+        field: 'class_id',
+        comment: '班级ID'
+    },
     teacherName: {
         type: Sequelize.INTEGER,
         allowNull: false,
