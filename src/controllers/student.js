@@ -114,14 +114,14 @@ const studentMethods = {
                         transaction: t
                     }).then(model => {
                         if (model) {
-                            let error = Boom.badData('创建学生失败，该学生已存在');
+                            let error = Boom.badData('创建失败，该学生已存在');
                             error.output.payload.code = 1004;
                             cb(error)
                         } else {
                             cb(null)
                         }
                     }).catch(err => {
-                        let error = Boom.badData('创建学生失败，请联系管理员');
+                        let error = Boom.badData('创建失败，请联系管理员');
                         error.output.payload.code = 1004;
                         debug(err)
                     })
@@ -156,18 +156,18 @@ const studentMethods = {
                                 debug('更新学生学号', data.toJSON())
                                 cb(null, data.toJSON())
                             } else {
-                                let error = Boom.badData('创建学生失败,更新学号出错')
+                                let error = Boom.badData('创建失败,更新学号出错')
                                 error.output.payload.code = 1004
                                 cb(error)
                             }
                         }).catch((err) => {
-                            let error = Boom.badData('创建学生失败,请联系管理员')
+                            let error = Boom.badData('创建失败,请联系管理员')
                             error.output.payload.code = 1004
                             error.output.payload.dbError = err
                             cb(error)
                         });
                     }).catch(err => {
-                        let error = Boom.badData('创建学生失败,请联系管理员')
+                        let error = Boom.badData('创建失败,请联系管理员')
                         error.output.payload.code = 1004
                         error.output.payload.dbError = err
                         cb(error)
@@ -181,7 +181,6 @@ const studentMethods = {
                         targetId: targetModel.id,
                         roleType: role.type.STUDENT
                     }
-                    // 增加事务
                     User.create(newUser, { transaction: t }).then(user => {
                         let userJSON = user.toJSON()
                         userJSON.baseInfo = targetModel
@@ -196,12 +195,12 @@ const studentMethods = {
             ], (err, result) => {
                 if (err) {
                     // 事务回滚
-                    debug('创建学生用户失败-事务回滚', err)
+                    debug('创建学生失败,事务回滚', err)
                     t.rollback()
                     reply(err)
                 } else {
                     //  事务提交
-                    debug('创建学生用户成功', result)
+                    // debug('创建学生用户成功', result)
                     t.commit();
                     reply(result)
                 }
@@ -210,77 +209,74 @@ const studentMethods = {
     },
     // 删除学生
     delete(request, reply) {
-        async.waterfall([
-            // 查询
-            (cb) => {
-                Student.findOne({
-                    where: {
-                        id: parseInt(request.params.studentId)
-                    }
-                }).then((model) => {
-                    // debug('classModel', classModel)
-                    if (!model) {
-                        let error = Boom.notAcceptable('学生不存在');
-                        error.output.payload.code = 1029;
-                        cb(error);
-                    } else {
-                        cb(null, model);
-                    }
-                }).catch((err) => {
-                    debug('findOneClass', err);
-                    let error = Boom.badImplementation();
-                    error.output.payload.code = 1030;
-                    error.output.payload.dbError = err;
-                    error.output.payload.message = '查询学生数据发生错误';
-                    cb(error);
-                })
-            },
-            // 删除学生
-            (targetModel, cb) => {
-                targetModel.destroy().then((delModel) => {
-                    // debug('classModel', classModel)
-                    if (!delModel) {
-                        let error = Boom.notAcceptable('学生不存在');
-                        error.output.payload.code = 1031;
-                        cb(error);
-                    } else {
-                        // 删除学生-用户账号
-                        // debug('studentId', targetModel.id)
-                        User.destroy({
-                            where: {
-                                targetId: parseInt(targetModel.id)
-                            }
-                        }).then(delUserModel => {
-                            if (!delUserModel) {
-                                let error = Boom.notAcceptable('学生-用户不存在');
-                                error.output.payload.code = 1032;
-                                cb(error);
-                            } else {
-                                cb(null, delModel.toJSON())
-                            }
-                        }).catch(err => {
-                            let error = Boom.badImplementation();
-                            error.output.payload.code = 1033;
-                            error.output.payload.dbError = err;
-                            error.output.payload.message = '删除学生-用户出错';
+        db.transaction().then(t => {
+            async.waterfall([
+                // 查询
+                (cb) => {
+                    Student.findOne({
+                        where: {
+                            id: parseInt(request.params.studentId)
+                        },
+                        transaction: t
+                    }).then((model) => {
+                        // debug('classModel', classModel)
+                        if (!model) {
+                            let error = Boom.badData('学生不存在')
+                            error.output.payload.code = 1029
+                            cb(error)
+                        } else {
+                            cb(null, model)
+                        }
+                    }).catch((err) => {
+                        let error = Boom.badData('系统出错，请联系管理员')
+                        error.output.payload.code = 1029
+                        error.output.payload.dbError = err
+                        cb(error)
+                    })
+                },
+                // 删除学生
+                (targetModel, cb) => {
+                    targetModel.destroy().then((delModel) => {
+                        if (!delModel) {
+                            let error = Boom.badData('学生不存在');
+                            error.output.payload.code = 1031;
                             cb(error);
-                        })
-                    }
-                }).catch((err) => {
-                    let error = Boom.badImplementation();
-                    error.output.payload.code = 1034;
-                    error.output.payload.dbError = err;
-                    error.output.payload.message = '删除学生出错';
-                    cb(error);
-                })
-            }
-        ], (err, result) => {
-            if (err) {
-                reply(err)
-            } else {
-                debug('删除学生信息', result)
-                reply(result)
-            }
+                        } else {
+                            User.destroy({
+                                where: {
+                                    targetId: parseInt(targetModel.id)
+                                },
+                                transaction: t
+                            }).then(delUserModel => {
+                                if (!delUserModel) {
+                                    let error = Boom.badData('系统出错，请联系管理员');
+                                    error.output.payload.code = 1032;
+                                    cb(error);
+                                } else {
+                                    cb(null, delModel.toJSON())
+                                }
+                            }).catch(err => {
+                                let error = Boom.badData('系统出错，请联系管理员')
+                                error.output.payload.dbError = err
+                                cb(error);
+                            })
+                        }
+                    }).catch((err) => {
+                        let error = Boom.badData('系统出错，请联系管理员')
+                        error.output.payload.code = 1034
+                        error.output.payload.dbError = err
+                        cb(error);
+                    })
+                }
+            ], (err, result) => {
+                if (err) {
+                    t.rollback()
+                    reply(err)
+                } else {
+                    t.commit()
+                    reply(result)
+                }
+            })
         })
     },
     // 更新学生
