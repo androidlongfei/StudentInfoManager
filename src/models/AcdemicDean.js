@@ -79,7 +79,7 @@ const AcdemicDean = dbConn.define('acdemic_dean', {
         },
         genderValue() {
             if (this.gender) {
-                console.log('genderValue', this.dataValues.gender)
+                // console.log('genderValue', this.dataValues.gender)
                 return gender.converTypeToValue(this.dataValues.gender)
             }
         }
