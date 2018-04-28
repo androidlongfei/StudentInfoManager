@@ -93,7 +93,7 @@ let createUserHashPassword = (user) => {
 }
 
 let updateUserHashPassword = (user) => {
-    debug('更新用户信息:', user.toJSON())
+    // debug('更新用户信息:', user.toJSON())
     debug(`是否需要密码加密:${user.resetPassword}`)
     if (user.resetPassword) {
         if (user.password) {

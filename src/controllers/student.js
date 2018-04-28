@@ -281,112 +281,112 @@ const studentMethods = {
     },
     // 更新学生
     update(request, reply) {
-        async.waterfall([
-                // 1.查询
-                (cb) => {
-                    Student.findById(request.params.studentId).then((model) => {
-                        debug('查询到学生', model)
-                        if (!model) {
-                            let error = Boom.notAcceptable('不存在');
-                            error.output.payload.code = 1044;
+        db.transaction().then(t => {
+            async.waterfall([
+                    // 1.查询
+                    (cb) => {
+                        Student.findById(request.params.studentId).then((model) => {
+                            // debug('查询到学生', model)
+                            if (!model) {
+                                let error = Boom.notAcceptable('学生不存在');
+                                error.output.payload.code = 1044;
+                                cb(error);
+                            } else {
+                                cb(null, model)
+                            }
+                        }).catch((err) => {
+                            let error = Boom.badData('服务异常，请联系管理员')
+                            error.output.payload.code = 1045
+                            error.output.payload.dbError = err
                             cb(error);
-                        } else {
-                            cb(null, model)
-                        }
-                    }).catch((err) => {
-                        let error = Boom.badImplementation();
-                        error.output.payload.code = 1045;
-                        error.output.payload.dbError = err;
-                        error.output.payload.message = '查询数据发生错误';
-                        cb(error);
-                    })
-                },
-                // 2.更新学生信息
-                (targetModel, cb) => {
-                    if (request.payload.idCardNo) {
-                        targetModel.idCardNo = request.payload.idCardNo;
-                    }
-                    if (request.payload.name) {
-                        targetModel.name = request.payload.name;
-                    }
-                    if (request.payload.age) {
-                        targetModel.age = request.payload.age;
-                    }
-                    if (request.payload.gender) {
-                        targetModel.gender = request.payload.gender;
-                    }
-                    if (request.payload.birth) {
-                        targetModel.birth = request.payload.birth;
-                    }
-                    if (request.payload.telephone) {
-                        targetModel.telephone = request.payload.telephone;
-                    }
-                    if (request.payload.admission) {
-                        targetModel.admission = request.payload.admission;
-                    }
-                    if (request.payload.classId) {
-                        targetModel.classId = request.payload.classId;
-                    }
-                    if (request.payload.address) {
-                        targetModel.address = request.payload.address;
-                    }
-                    if (request.payload.department) {
-                        targetModel.department = request.payload.department;
-                    }
-                    if (request.payload.professional) {
-                        targetModel.professional = request.payload.professional;
-                    }
-                    // debug('保存前', classModel)
-                    targetModel.save().then(updateModel => {
-                        let updateModelJSON = updateModel.toJSON();
+                        })
+                    },
+                    // 2.更新学生信息
+                    (targetModel, cb) => {
                         if (request.payload.idCardNo) {
-                            debug('-----', request.payload.idCardNo, updateModelJSON.id)
-                            // 更新用户名,重置密码
-                            User.findOne({
-                                where: {
-                                    roleType: role.type.STUDENT,
-                                    targetId: updateModelJSON.id
-                                }
-                            }).then(user => {
-                                if (user) {
-                                    user.token = null
-                                    // user.resetPassword = true
-                                    // user.password = setting.detaultPwd
-                                    user.username = request.payload.idCardNo
-                                    user.save().then(newUser => {
-                                        // console.log('newUser-----------+++---', newUser)
-                                        cb(null, updateModelJSON);
-                                    }).catch(err => {
-                                        let error = Boom.badImplementation();
-                                        error.output.payload.code = 1012;
-                                        error.output.payload.dbError = err;
-                                        error.output.payload.message = '查询数据发生错误';
-                                        cb(null, updateModelJSON);
-                                    })
-                                } else {
-                                    cb(null, updateModelJSON);
-                                }
-                            })
-                        } else {
-                            cb(null, updateModelJSON);
+                            targetModel.idCardNo = request.payload.idCardNo;
                         }
-                    }).catch(err => {
-                        let error = Boom.badImplementation();
-                        error.output.payload.code = 1046;
-                        error.output.payload.dbError = err;
-                        error.output.payload.message = '更新学生信息';
-                        cb(error)
-                    })
-                }
-            ],
-            (err, result) => {
-                if (err) {
-                    reply(err)
-                } else {
-                    debug('更细学生信息', result)
-                    reply(result)
-                }
-            });
+                        if (request.payload.name) {
+                            targetModel.name = request.payload.name;
+                        }
+                        if (request.payload.age) {
+                            targetModel.age = request.payload.age;
+                        }
+                        if (request.payload.gender) {
+                            targetModel.gender = request.payload.gender;
+                        }
+                        if (request.payload.birth) {
+                            targetModel.birth = request.payload.birth;
+                        }
+                        if (request.payload.telephone) {
+                            targetModel.telephone = request.payload.telephone;
+                        }
+                        if (request.payload.admission) {
+                            targetModel.admission = request.payload.admission;
+                        }
+                        if (request.payload.classId) {
+                            targetModel.classId = request.payload.classId;
+                        }
+                        if (request.payload.address) {
+                            targetModel.address = request.payload.address;
+                        }
+                        if (request.payload.department) {
+                            targetModel.department = request.payload.department;
+                        }
+                        if (request.payload.professional) {
+                            targetModel.professional = request.payload.professional;
+                        }
+                        // debug('保存前', classModel)
+                        targetModel.save({ transaction: t }).then(updateModel => {
+                            let updateModelJSON = updateModel.toJSON();
+                            if (request.payload.idCardNo) {
+                                // 更新用户名,重置密码
+                                User.findOne({
+                                    where: {
+                                        roleType: role.type.STUDENT,
+                                        targetId: updateModelJSON.id
+                                    },
+                                    transaction: t
+                                }).then(user => {
+                                    if (user) {
+                                        user.token = null
+                                        user.username = request.payload.idCardNo
+                                        user.save({ transaction: t }).then(newUser => {
+                                            cb(null, updateModelJSON)
+                                        }).catch(err => {
+                                            let error = Boom.badData('服务异常，请联系管理员')
+                                            error.output.payload.code = 1012;
+                                            error.output.payload.dbError = err
+                                            cb(error);
+                                        })
+                                    } else {
+                                        let error = Boom.badData('服务异常，请联系管理员')
+                                        error.output.payload.code = 1012;
+                                        cb(error)
+                                    }
+                                })
+                            } else {
+                                cb(null, updateModelJSON);
+                            }
+                        }).catch(err => {
+                            let error = Boom.badData('更新失败，请联系管理员')
+                            error.output.payload.code = 1046
+                            error.output.payload.dbError = err
+                            cb(error)
+                        })
+                    }
+                ],
+                (err, result) => {
+                    if (err) {
+                        debug('更新失败回滚', err)
+                        t.rollback()
+                        reply(err)
+                    } else {
+                        t.commit()
+                        reply(result)
+                    }
+                });
+        })
     },
     // 根据学生ID查询学生信息
     findOneById(request, reply) {
