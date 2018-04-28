@@ -11,11 +11,32 @@ const User = require('../models/User');
 
 const setting = require('../config/setting');
 const role = require('../config/role');
+const db = require('../lib/db/dbConn');
 
 const studentMethods = {
-    // 创建学生
     create(request, reply) {
         async.waterfall([
+            // 判断是否存在
+            (cb) => {
+                Student.findOne({
+                    where: {
+                        idCardNo: request.payload.idCardNo
+                    }
+                }).then(model => {
+                    if (model) {
+                        let error = Boom.badData('创建失败，该账号已存在');
+                        error.output.payload.code = 1004;
+                        cb(error)
+                    } else {
+                        cb(null)
+                    }
+                }).catch(err => {
+                    let error = Boom.badData('创建失败，请联系管理员');
+                    error.output.payload.code = 1004;
+                    debug(err)
+                })
+            },
+            // 创建学生
             (cb) => {
                 let postParameter = request.payload
                 let newModel = {
@@ -37,21 +58,20 @@ const studentMethods = {
                 if (postParameter.telephone) {
                     newModel.telephone = postParameter.telephone
                 }
-                Student.create(newModel).then(model => {
+                // 增加事务
+                return Student.create(newModel).then((model) => {
                     model.studentNo = model.generateStudentNo
                     model.save()
-                    let modelJSON = model.toJSON();
-                    debug('create student success', modelJSON);
-                    cb(null, modelJSON)
-                }).catch(function (err) {
-                    // console.log('err', err);
-                    let error = Boom.notAcceptable('创建学生失败');
+                    cb(null, model.toJSON())
+                }).catch((err) => {
+                    let error = Boom.badData('创建失败，请联系管理员');
                     error.output.payload.code = 1004;
                     error.output.payload.dbError = err;
                     debug('create student err', err);
                     cb(error)
-                });
+                })
             },
+            // 创建学生账号
             (targetModel, cb) => {
                 let newUser = {
                     username: targetModel.idCardNo,
@@ -59,13 +79,14 @@ const studentMethods = {
                     targetId: targetModel.id,
                     roleType: role.type.STUDENT
                 }
-                User.create(newUser).then(user => {
+                // 增加事务
+                return User.create(newUser).then(user => {
                     let userJSON = user.toJSON()
                     debug('用户---学生', userJSON)
                     userJSON.baseInfo = targetModel
                     cb(null, userJSON)
                 }).catch(function (err) {
-                    let error = Boom.notAcceptable('创建学生用户失败');
+                    let error = Boom.badData('创建失败，请联系管理员');
                     error.output.payload.code = 1005;
                     error.output.payload.dbError = err;
                     debug('create student-user err', error);
@@ -76,9 +97,177 @@ const studentMethods = {
             if (err) {
                 reply(err)
             } else {
-                debug('创建学生信息', result)
                 reply(result)
             }
+        })
+    },
+    create1(request, reply) {
+        db.transaction(function (t) {
+            debug('create学生事务')
+            async.waterfall([
+                (cb) => {
+                    Student.findOne({
+                        where: {
+                            idCardNo: request.payload.idCardNo
+                        }
+                    }).then(stu => {
+                        if (stu) {
+                            let error = Boom.badData('创建学生失败，改学生已存在');
+                            error.output.payload.code = 1004;
+                            cb(error)
+                        } else {
+                            cb(null)
+                        }
+                    }).catch(err => {
+                        let error = Boom.badData('创建学生失败，请联系管理员');
+                        error.output.payload.code = 1004;
+                        debug(err)
+                    })
+                },
+                (cb) => {
+                    let postParameter = request.payload
+                    let newModel = {
+                        idCardNo: postParameter.idCardNo,
+                        name: postParameter.name,
+                        gender: postParameter.gender,
+                        birth: postParameter.birth,
+                        admission: postParameter.admission,
+                        classId: postParameter.classId,
+                        professional: postParameter.professional,
+                        department: postParameter.department
+                    }
+                    if (postParameter.age) {
+                        newModel.age = postParameter.age
+                    }
+                    if (postParameter.address) {
+                        newModel.address = postParameter.address
+                    }
+                    if (postParameter.telephone) {
+                        newModel.telephone = postParameter.telephone
+                    }
+                    // 增加事务
+                    return Student.create(newModel, { transaction: t }).then((model) => {
+                        model.studentNo = model.generateStudentNo
+                        model.save()
+                        cb(null, model.toJSON())
+                    }).catch((err) => {
+                        let error = Boom.notAcceptable('创建学生失败');
+                        error.output.payload.code = 1004;
+                        error.output.payload.dbError = err;
+                        debug('create student err', err);
+                        cb(error)
+                    })
+                },
+                (targetModel, cb) => {
+                    let newUser = {
+                        username: targetModel.idCardNo,
+                        password: setting.detaultPwd,
+                        targetId: targetModel.id,
+                        roleType: role.type.STUDENT
+                    }
+                    // 增加事务
+                    return User.create(newUser, { transaction: t }).then(user => {
+                        let userJSON = user.toJSON()
+                        debug('用户---学生', userJSON)
+                        userJSON.baseInfo = targetModel
+                        cb(null, userJSON)
+                    }).catch(function (err) {
+                        let error = Boom.notAcceptable('创建学生用户失败');
+                        error.output.payload.code = 1005;
+                        error.output.payload.dbError = err;
+                        debug('create student-user err', error);
+                        cb(error)
+                    })
+                }
+            ], (err, result) => {
+                if (err) {
+                    reply(err)
+                } else {
+                    reply(result)
+                }
+            })
+        }).then(function (result) {
+            // 事务已被提交
+            // result 是 promise 链返回到事务回调的结果
+            debug('事务提交', result)
+        }).catch(function (err) {
+            // 事务已被回滚
+            // err 是拒绝 promise 链返回到事务回调的错误
+            debug('事务回滚', err)
+            console.log(err);
+        });
+    },
+    // 创建学生 => student和user同时成功才算成功
+    create2(request, reply) {
+        db.transaction().then(function (t) {
+            async.waterfall([
+                (cb) => {
+                    let postParameter = request.payload
+                    let newModel = {
+                        idCardNo: postParameter.idCardNo,
+                        name: postParameter.name,
+                        gender: postParameter.gender,
+                        birth: postParameter.birth,
+                        admission: postParameter.admission,
+                        classId: postParameter.classId,
+                        professional: postParameter.professional,
+                        department: postParameter.department
+                    }
+                    if (postParameter.age) {
+                        newModel.age = postParameter.age
+                    }
+                    if (postParameter.address) {
+                        newModel.address = postParameter.address
+                    }
+                    if (postParameter.telephone) {
+                        newModel.telephone = postParameter.telephone
+                    }
+                    // 增加事务
+                    Student.create(newModel, { transaction: t }).then((model) => {
+                        model.studentNo = model.generateStudentNo
+                        model.save()
+                        cb(null, model.toJSON())
+                    }).catch((err) => {
+                        let error = Boom.notAcceptable('创建学生失败');
+                        error.output.payload.code = 1004;
+                        error.output.payload.dbError = err;
+                        debug('create student-user err', error);
+                        cb(error)
+                    })
+                },
+                (targetModel, cb) => {
+                    let newUser = {
+                        username: targetModel.idCardNo,
+                        password: setting.detaultPwd,
+                        targetId: targetModel.id,
+                        roleType: role.type.STUDENT
+                    }
+                    // 增加事务
+                    User.create(newUser, { transaction: t }).then(user => {
+                        let userJSON = user.toJSON()
+                        debug('用户---学生', userJSON)
+                        userJSON.baseInfo = targetModel
+                        cb(null, userJSON)
+                    }).catch(function (err) {
+                        let error = Boom.notAcceptable('创建学生用户失败');
+                        error.output.payload.code = 1005;
+                        error.output.payload.dbError = err;
+                        debug('create student-user err', error);
+                        cb(error)
+                    })
+                }
+            ], (err, result) => {
+                if (err) {
+                    debug('创建学生用户失败', err)
+                    reply(err)
+                } else {
+                    debug('创建学生用户成功', result)
+                    reply(result)
+                }
+            })
+        }).catch((err) => {
+            // 事务已被回滚
+            debug('事务提交回滚', err);
         })
     },
     // 删除学生

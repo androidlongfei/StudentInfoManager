@@ -18,6 +18,26 @@ const teacherMethods = {
     // 创建
     create(request, reply) {
         async.waterfall([
+            // 判断是否存在
+            (cb) => {
+                Teacher.findOne({
+                    where: {
+                        idCardNo: request.payload.idCardNo
+                    }
+                }).then(model => {
+                    if (model) {
+                        let error = Boom.badData('创建失败，该账号已存在');
+                        error.output.payload.code = 1004;
+                        cb(error)
+                    } else {
+                        cb(null)
+                    }
+                }).catch(err => {
+                    let error = Boom.badData('创建失败，请联系管理员');
+                    error.output.payload.code = 1004;
+                    debug(err)
+                })
+            },
             (cb) => {
                 let postParameter = request.payload
                 let newModel = {
