@@ -13,261 +13,274 @@ const setting = require('../config/setting');
 const role = require('../config/role');
 import Sequelize from 'Sequelize';
 const Op = Sequelize.Op;
+const db = require('../lib/db/dbConn');
 
 const acdemicDeanMethods = {
     // 创建
     create(request, reply) {
-        async.waterfall([
-            // 判断是否存在
-            (cb) => {
-                AcdemicDean.findOne({
-                    where: {
-                        idCardNo: request.payload.idCardNo
-                    }
-                }).then(model => {
-                    if (model) {
-                        let error = Boom.badData('创建失败，该账号已存在');
+        db.transaction().then(t => {
+            async.waterfall([
+                // 判断是否存在
+                (cb) => {
+                    AcdemicDean.findOne({
+                        where: {
+                            idCardNo: request.payload.idCardNo
+                        }
+                    }).then(model => {
+                        if (model) {
+                            let error = Boom.badData('创建失败，该账号已存在');
+                            error.output.payload.code = 1004;
+                            cb(error)
+                        } else {
+                            cb(null)
+                        }
+                    }).catch(err => {
+                        let error = Boom.badData('创建失败，请联系管理员');
                         error.output.payload.code = 1004;
+                        error.output.payload.dbError = err
                         cb(error)
-                    } else {
-                        cb(null)
+                    })
+                },
+                (cb) => {
+                    let postParameter = request.payload
+                    let newModel = {
+                        idCardNo: postParameter.idCardNo,
+                        name: postParameter.name,
+                        gender: postParameter.gender,
+                        birth: postParameter.birth,
+                        telephone: postParameter.telephone,
+                        department: postParameter.department,
+                        address: postParameter.address,
+                        age: postParameter.age
                     }
-                }).catch(err => {
-                    let error = Boom.badData('创建失败，请联系管理员');
-                    error.output.payload.code = 1004;
-                    debug(err)
-                })
-            },
-            (cb) => {
-                let postParameter = request.payload
-                let newModel = {
-                    idCardNo: postParameter.idCardNo,
-                    name: postParameter.name,
-                    gender: postParameter.gender,
-                    birth: postParameter.birth,
-                    telephone: postParameter.telephone,
-                    department: postParameter.department,
-                    address: postParameter.address,
-                    age: postParameter.age
+                    AcdemicDean.create(newModel, { transaction: t }).then(model => {
+                        model.updateAttributes({ acdemicDeanNo: model.generateAcdemicDeanNo }, {
+                            transaction: t
+                        }).then(data => {
+                            if (data) {
+                                debug('教务员编号', data.acdemicDeanNo)
+                                cb(null, data.toJSON())
+                            } else {
+                                let error = Boom.badData('创建失败,教务员编号出错')
+                                error.output.payload.code = 1004
+                                cb(error)
+                            }
+                        }).catch((err) => {
+                            let error = Boom.badData('创建失败,请联系管理员')
+                            error.output.payload.code = 1004
+                            error.output.payload.dbError = err
+                            cb(error)
+                        });
+                    }).catch(err => {
+                        let error = Boom.badData('创建失败,请联系管理员');
+                        error.output.payload.code = 1004;
+                        error.output.payload.dbError = err;
+                        cb(error)
+                    });
+                },
+                (targetModel, cb) => {
+                    let newUser = {
+                        username: targetModel.idCardNo,
+                        password: setting.detaultPwd,
+                        targetId: targetModel.id,
+                        roleType: role.type.ACDEMIC
+                    }
+                    User.create(newUser, { transaction: t }).then(user => {
+                        let userJSON = user.toJSON()
+                        userJSON.baseInfo = targetModel
+                        cb(null, userJSON)
+                    }).catch(function (err) {
+                        let error = Boom.badData('创建失败,请联系管理员');
+                        error.output.payload.code = 1005;
+                        error.output.payload.dbError = err;
+                        cb(error)
+                    })
                 }
-                AcdemicDean.create(newModel).then(model => {
-                    model.acdemicDeanNo = model.generateAcdemicDeanNo
-                    debug('model.acdemicDeanNo', model.acdemicDeanNo)
-                    model.save()
-                    let modelJSON = model.toJSON();
-                    debug('create success', modelJSON);
-                    cb(null, modelJSON)
-                }).catch(err => {
-                    console.log('err', err);
-                    let error = Boom.notAcceptable('创建教务员失败');
-                    error.output.payload.code = 1004;
-                    error.output.payload.dbError = err;
-                    cb(error)
-                });
-            },
-            (targetModel, cb) => {
-                let newUser = {
-                    username: targetModel.idCardNo,
-                    password: setting.detaultPwd,
-                    targetId: targetModel.id,
-                    roleType: role.type.ACDEMIC
+            ], (err, result) => {
+                if (err) {
+                    debug('创建教务员失败,事务回滚', err)
+                    t.rollback()
+                    reply(err)
+                } else {
+                    t.commit();
+                    reply(result)
                 }
-                User.create(newUser).then(user => {
-                    let userJSON = user.toJSON()
-                    debug('用户---教务员', userJSON)
-                    userJSON.baseInfo = targetModel
-                    cb(null, userJSON)
-                }).catch(function (err) {
-                    let error = Boom.notAcceptable('创建教务员用户失败');
-                    error.output.payload.code = 1005;
-                    error.output.payload.dbError = err;
-                    debug('create student-user err', error);
-                    cb(error)
-                })
-            }
-        ], (err, result) => {
-            if (err) {
-                reply(err)
-            } else {
-                debug('创建信息', result)
-                reply(result)
-            }
+            })
         })
     },
     // 删除
     delete(request, reply) {
-        async.waterfall([
-            // 查询
-            (cb) => {
-                AcdemicDean.findOne({
-                    where: {
-                        id: parseInt(request.params.acdemicDeanId)
-                    }
-                }).then((model) => {
-                    // debug('classModel', classModel)
-                    if (!model) {
-                        let error = Boom.notAcceptable('教务员不存在')
-                        error.output.payload.code = 1029;
-                        cb(error);
-                    } else {
-                        cb(null, model);
-                    }
-                }).catch((err) => {
-                    debug('findOneClass', err);
-                    let error = Boom.badImplementation();
-                    error.output.payload.code = 1030;
-                    error.output.payload.dbError = err;
-                    error.output.payload.message = '查询数据发生错误';
-                    cb(error);
-                })
-            },
-            // 删除
-            (targetModel, cb) => {
-                targetModel.destroy().then((delModel) => {
-                    // debug('classModel', classModel)
-                    if (!delModel) {
-                        let error = Boom.notAcceptable('教务员不存在');
-                        error.output.payload.code = 1031;
-                        cb(error);
-                    } else {
-                        // 删除学生-用户账号
-                        // debug('studentId', targetModel.id)
-                        User.destroy({
-                            where: {
-                                targetId: parseInt(targetModel.id)
-                            }
-                        }).then(delUserModel => {
-                            if (!delUserModel) {
-                                let error = Boom.notAcceptable('教务员-用户不存在');
-                                error.output.payload.code = 1032;
-                                cb(error);
-                            } else {
-                                cb(null, delModel.toJSON())
-                            }
-                        }).catch(err => {
-                            let error = Boom.badImplementation();
-                            error.output.payload.code = 1033;
-                            error.output.payload.dbError = err;
-                            error.output.payload.message = '删除教师-用户出错';
+        db.transaction().then(t => {
+            async.waterfall([
+                // 查询
+                (cb) => {
+                    AcdemicDean.findOne({
+                        where: {
+                            id: parseInt(request.params.acdemicDeanId)
+                        }
+                    }).then((model) => {
+                        if (!model) {
+                            let error = Boom.badData('删除失败,教务员不存在')
+                            error.output.payload.code = 1029;
                             cb(error);
-                        })
-                    }
-                }).catch((err) => {
-                    let error = Boom.badImplementation();
-                    error.output.payload.code = 1034;
-                    error.output.payload.dbError = err;
-                    error.output.payload.message = '删除教师出错';
-                    cb(error);
-                })
-            }
-        ], (err, result) => {
-            if (err) {
-                reply(err)
-            } else {
-                debug('删除学生信息', result)
-                reply(result)
-            }
+                        } else {
+                            cb(null, model);
+                        }
+                    }).catch((err) => {
+                        let error = Boom.badData('删除失败,请联系管理员');
+                        error.output.payload.code = 1005;
+                        error.output.payload.dbError = err;
+                        cb(error);
+                    })
+                },
+                // 删除
+                (targetModel, cb) => {
+                    targetModel.destroy({ transaction: t }).then((delModel) => {
+                        if (!delModel) {
+                            let error = Boom.badData('删除失败,请联系管理员');
+                            error.output.payload.code = 1031;
+                            cb(error);
+                        } else {
+                            User.destroy({
+                                where: {
+                                    targetId: parseInt(targetModel.id)
+                                },
+                                transaction: t
+                            }).then(delUserModel => {
+                                if (!delUserModel) {
+                                    let error = Boom.badData('删除失败,请联系管理员');
+                                    error.output.payload.code = 1032;
+                                    cb(error);
+                                } else {
+                                    cb(null, delModel.toJSON())
+                                }
+                            }).catch(err => {
+                                let error = Boom.badData('删除失败,请联系管理员');
+                                error.output.payload.code = 1033;
+                                error.output.payload.dbError = err;
+                                cb(error);
+                            })
+                        }
+                    }).catch((err) => {
+                        let error = Boom.badData('删除失败,请联系管理员');
+                        error.output.payload.code = 1034;
+                        error.output.payload.dbError = err;
+                        cb(error);
+                    })
+                }
+            ], (err, result) => {
+                if (err) {
+                    debug('删除教务员失败,事务回滚', err)
+                    t.rollback()
+                    reply(err)
+                } else {
+                    t.commit();
+                    reply(result)
+                }
+            })
         })
     },
     // 更新
     update(request, reply) {
-        async.waterfall([
-                // 1.查询
-                (cb) => {
-                    AcdemicDean.findById(request.params.acdemicDeanId).then((model) => {
-                        debug('查询到', model)
-                        if (!model) {
-                            let error = Boom.notAcceptable('不存在');
-                            error.output.payload.code = 1044;
+        db.transaction().then(t => {
+            async.waterfall([
+                    // 1.查询
+                    (cb) => {
+                        AcdemicDean.findById(request.params.acdemicDeanId).then((model) => {
+                            if (!model) {
+                                let error = Boom.badData('更新失败,教务员不存在')
+                                error.output.payload.code = 1044;
+                                cb(error);
+                            } else {
+                                cb(null, model)
+                            }
+                        }).catch((err) => {
+                            let error = Boom.badData('更新失败,请联系管理员')
+                            error.output.payload.code = 1045;
+                            error.output.payload.dbError = err;
                             cb(error);
-                        } else {
-                            cb(null, model)
-                        }
-                    }).catch((err) => {
-                        let error = Boom.badImplementation();
-                        error.output.payload.code = 1045;
-                        error.output.payload.dbError = err;
-                        error.output.payload.message = '查询数据发生错误';
-                        cb(error);
-                    })
-                },
-                // 2.更新信息
-                (targetModel, cb) => {
-                    if (request.payload.idCardNo) {
-                        targetModel.idCardNo = request.payload.idCardNo;
-                    }
-                    if (request.payload.name) {
-                        targetModel.name = request.payload.name;
-                    }
-                    if (request.payload.gender) {
-                        targetModel.gender = request.payload.gender;
-                    }
-                    if (request.payload.birth) {
-                        targetModel.birth = request.payload.birth;
-                    }
-                    if (request.payload.telephone) {
-                        targetModel.telephone = request.payload.telephone;
-                    }
-                    if (request.payload.department) {
-                        targetModel.department = request.payload.department;
-                    }
-                    if (request.payload.address) {
-                        targetModel.address = request.payload.address;
-                    }
-                    if (request.payload.age) {
-                        targetModel.age = request.payload.age;
-                    }
-                    // debug('保存前', classModel)
-                    targetModel.save().then(updateModel => {
-                        let updateModelJSON = updateModel.toJSON();
+                        })
+                    },
+                    // 2.更新信息
+                    (targetModel, cb) => {
                         if (request.payload.idCardNo) {
-                            debug('-----', request.payload.idCardNo, updateModelJSON.id)
-                            // 更新用户名,重置密码
-                            User.findOne({
-                                where: {
-                                    roleType: role.type.ACDEMIC,
-                                    targetId: updateModelJSON.id
-                                }
-                            }).then(user => {
-                                if (user) {
-                                    user.token = null
-                                    // user.resetPassword = true
-                                    // user.password = setting.detaultPwd
-                                    user.username = request.payload.idCardNo
-                                    user.save().then(newUser => {
-                                        // console.log('newUser-----------+++---', newUser)
-                                        cb(null, updateModelJSON);
-                                    }).catch(err => {
-                                        let error = Boom.badImplementation();
-                                        error.output.payload.code = 1012;
-                                        error.output.payload.dbError = err;
-                                        error.output.payload.message = '查询数据发生错误';
-                                        cb(null, updateModelJSON);
-                                    })
-                                } else {
-                                    cb(null, updateModelJSON);
-                                }
-                            })
-                        } else {
-                            cb(null, updateModelJSON);
+                            targetModel.idCardNo = request.payload.idCardNo;
                         }
-                    }).catch(err => {
-                        let error = Boom.badImplementation();
-                        error.output.payload.code = 1046;
-                        error.output.payload.dbError = err;
-                        error.output.payload.message = '更新信息';
-                        cb(error)
-                    })
-                }
-            ],
-            (err, result) => {
-                if (err) {
-                    reply(err)
-                } else {
-                    debug('更细信息', result)
-                    reply(result)
-                }
-            });
+                        if (request.payload.name) {
+                            targetModel.name = request.payload.name;
+                        }
+                        if (request.payload.gender) {
+                            targetModel.gender = request.payload.gender;
+                        }
+                        if (request.payload.birth) {
+                            targetModel.birth = request.payload.birth;
+                        }
+                        if (request.payload.telephone) {
+                            targetModel.telephone = request.payload.telephone;
+                        }
+                        if (request.payload.department) {
+                            targetModel.department = request.payload.department;
+                        }
+                        if (request.payload.address) {
+                            targetModel.address = request.payload.address;
+                        }
+                        if (request.payload.age) {
+                            targetModel.age = request.payload.age;
+                        }
+                        // debug('保存前', classModel)
+                        targetModel.save({ transaction: t }).then(updateModel => {
+                            let updateModelJSON = updateModel.toJSON();
+                            if (request.payload.idCardNo) {
+                                // 更新用户名,重置token
+                                User.findOne({
+                                    where: {
+                                        roleType: role.type.ACDEMIC,
+                                        targetId: updateModelJSON.id
+                                    },
+                                    transaction: t
+                                }).then(user => {
+                                    if (user) {
+                                        user.token = null
+                                        user.username = request.payload.idCardNo
+                                        user.save({ transaction: t }).then(newUser => {
+                                            cb(null, updateModelJSON);
+                                        }).catch(err => {
+                                            let error = Boom.badData('更新失败,请联系管理员')
+                                            error.output.payload.code = 1012;
+                                            error.output.payload.dbError = err;
+                                            cb(error);
+                                        })
+                                    } else {
+                                        cb(null, updateModelJSON);
+                                    }
+                                }).catch(err => {
+                                    let error = Boom.badData('更新失败,请联系管理员')
+                                    error.output.payload.code = 1012;
+                                    error.output.payload.dbError = err;
+                                    cb(error);
+                                })
+                            } else {
+                                cb(null, updateModelJSON);
+                            }
+                        }).catch(err => {
+                            let error = Boom.badData('更新失败,请联系管理员')
+                            error.output.payload.code = 1012;
+                            error.output.payload.dbError = err;
+                            cb(error)
+                        })
+                    }
+                ],
+                (err, result) => {
+                    if (err) {
+                        debug('更新教务员失败,事务回滚', err)
+                        t.rollback()
+                        reply(err)
+                    } else {
+                        t.commit();
+                        reply(result)
+                    }
+                });
+        })
     },
     // 根据学生ID查询学生信息
     findOneById(request, reply) {
@@ -277,16 +290,17 @@ const acdemicDeanMethods = {
             }
         ], (err, result) => {
             if (err) {
-                reply(err)
+                let error = Boom.badData('查询失败,请联系管理员')
+                error.output.payload.code = 1012;
+                error.output.payload.dbError = err;
+                reply(error)
             } else {
-                debug('findOneById 教务员', result)
                 reply(result)
             }
         });
     },
     // 分页查询
     count(request, reply) {
-        // debug('count-------------', request.query);
         let queryObj = {};
         let filterWhere = {}
         if (request.query.acdemicDeanNo) {
@@ -318,8 +332,7 @@ const acdemicDeanMethods = {
             queryObj.limit = pageSize
         }
         queryObj.where = filterWhere
-        debug('queryObj', queryObj)
-        async.waterfall([ // 查询班级
+        async.waterfall([
             (cb) => {
                 AcdemicDean.findAndCountAll(queryObj).then(function (model) {
                     reply(model)
@@ -328,7 +341,6 @@ const acdemicDeanMethods = {
                     let error = Boom.notAcceptable('查询失败')
                     error.output.payload.code = 1004;
                     error.output.payload.dbError = err;
-                    debug('count err', err);
                     reply(error);
                 });
             }
@@ -336,35 +348,30 @@ const acdemicDeanMethods = {
             if (err) {
                 reply(err)
             } else {
-                debug('result', result.toJSON())
+                // debug('result', result.toJSON())
                 reply(result.toJSON())
             }
         });
     }
 };
 
-// 查询一个学生
 function findOne(id, cb) {
-    // debug('findOneClass', id)
     AcdemicDean.findOne({
         where: {
             id: parseInt(id)
         }
     }).then((targetModel) => {
-        // debug('classModel', classModel)
         if (!targetModel) {
-            let error = Boom.notAcceptable('查询数据发生错误, 不存在');
+            let error = Boom.badData('查询数据发生错误, 不存在');
             error.output.payload.code = 1029;
             cb(error);
         } else {
             cb(null, targetModel.toJSON());
         }
     }).catch((err) => {
-        debug('findOneClass', err);
-        let error = Boom.badImplementation();
-        error.output.payload.code = 1030;
+        let error = Boom.badData('查询失败,请联系管理员')
+        error.output.payload.code = 1012;
         error.output.payload.dbError = err;
-        error.output.payload.message = '查询数据发生错误';
         cb(error);
     })
 };
