@@ -28,7 +28,7 @@ const classMethods = {
             }, 3000)
         }).catch(function (err) {
             // console.log('err', err);
-            let error = Boom.notAcceptable('创建班级失败');
+            let error = Boom.badData('创建班级失败');
             error.output.payload.code = 1004;
             error.output.payload.dbError = err;
             debug('createClass err', err);
@@ -47,7 +47,7 @@ const classMethods = {
                 }).then((classModel) => {
                     // debug('classModel', classModel)
                     if (!classModel) {
-                        let error = Boom.notAcceptable('班级不存在');
+                        let error = Boom.badData('班级不存在');
                         error.output.payload.code = 1029;
                         cb(error);
                     } else {
@@ -55,10 +55,9 @@ const classMethods = {
                     }
                 }).catch((err) => {
                     debug('findOneClass', err);
-                    let error = Boom.badImplementation();
+                    let error = Boom.badData('查询班级数据发生错误');
                     error.output.payload.code = 1030;
                     error.output.payload.dbError = err;
-                    error.output.payload.message = '查询班级数据发生错误';
                     cb(error);
                 })
             },
@@ -67,17 +66,16 @@ const classMethods = {
                 classModel.destroy().then((delClassModel) => {
                     // debug('classModel', classModel)
                     if (!delClassModel) {
-                        let error = Boom.notAcceptable('班级不存在');
+                        let error = Boom.badData('班级不存在');
                         error.output.payload.code = 1031;
                         cb(error);
                     } else {
                         cb(null, delClassModel.toJSON());
                     }
                 }).catch((err) => {
-                    let error = Boom.badImplementation();
+                    let error = Boom.badData('删除班级出错');
                     error.output.payload.code = 1032;
                     error.output.payload.dbError = err;
-                    error.output.payload.message = '删除班级出错';
                     cb(error);
                 })
             }
@@ -98,17 +96,16 @@ const classMethods = {
                     Class.findById(request.params.classId).then((classModel) => {
                         debug('查询到班级', classModel)
                         if (!classModel) {
-                            let error = Boom.notAcceptable('班级不存在');
+                            let error = Boom.badData('班级不存在');
                             error.output.payload.code = 1044;
                             cb(error);
                         } else {
                             cb(null, classModel)
                         }
                     }).catch((err) => {
-                        let error = Boom.badImplementation();
+                        let error = Boom.badData('查询数据发生错误');
                         error.output.payload.code = 1045;
                         error.output.payload.dbError = err;
-                        error.output.payload.message = '查询数据发生错误';
                         cb(error);
                     })
                 },
@@ -124,15 +121,14 @@ const classMethods = {
                         classModel.note = request.payload.note;
                     }
                     // debug('保存前', classModel)
-                    classModel.save().then(function (newUpdateClass) {
+                    classModel.save().then(newUpdateClass => {
                         // debug(uuu);
                         let classInfoJSON = newUpdateClass.toJSON();
                         cb(null, classInfoJSON);
                     }).catch(function (err) {
-                        let error = Boom.badImplementation();
+                        let error = Boom.badData('更新班级发生错误');
                         error.output.payload.code = 1046;
                         error.output.payload.dbError = err;
-                        error.output.payload.message = '更新班级发生错误';
                         cb(error)
                     })
                 }
@@ -189,21 +185,15 @@ const classMethods = {
             queryObj.limit = pageSize
         }
         queryObj.where = filterWhere
-        debug('queryObj', queryObj)
+        // debug('queryObj', queryObj)
         async.waterfall([ // 查询班级
             (cb) => {
-                Class.findAndCountAll(queryObj).then(function (classModel) {
-                    // debug('classModel', classModel)
-                    // setTimeout(() => {
-                    //     reply(classModel)
-                    // }, 2000)
+                Class.findAndCountAll(queryObj).then(classModel => {
                     reply(classModel)
-                }).catch(function (err) {
-                    // console.log('err', err);
+                }).catch(err => {
                     let error = Boom.notAcceptable('查询班级失败')
                     error.output.payload.code = 1004;
                     error.output.payload.dbError = err;
-                    debug('createClass err', err);
                     reply(error);
                 });
             }
@@ -211,7 +201,7 @@ const classMethods = {
             if (err) {
                 reply(err)
             } else {
-                debug('result', result.toJSON())
+                // debug('result', result.toJSON())
                 reply(result.toJSON())
             }
         });
@@ -236,10 +226,9 @@ function findOneClass(id, cb) {
         }
     }).catch((err) => {
         debug('findOneClass', err);
-        let error = Boom.badImplementation();
+        let error = Boom.notAcceptable('查询班级数据发生错误');
         error.output.payload.code = 1030;
         error.output.payload.dbError = err;
-        error.output.payload.message = '查询班级数据发生错误';
         cb(error);
     })
 };

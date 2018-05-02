@@ -14,93 +14,6 @@ const role = require('../config/role');
 const db = require('../lib/db/dbConn');
 
 const studentMethods = {
-    create1(request, reply) {
-        async.waterfall([
-            // 判断是否存在
-            (cb) => {
-                Student.findOne({
-                    where: {
-                        idCardNo: request.payload.idCardNo
-                    }
-                }).then(model => {
-                    if (model) {
-                        let error = Boom.badData('创建失败，该账号已存在');
-                        error.output.payload.code = 1004;
-                        cb(error)
-                    } else {
-                        cb(null)
-                    }
-                }).catch(err => {
-                    let error = Boom.badData('创建失败，请联系管理员');
-                    error.output.payload.code = 1004;
-                    debug(err)
-                })
-            },
-            // 创建学生
-            (cb) => {
-                let postParameter = request.payload
-                let newModel = {
-                    idCardNo: postParameter.idCardNo,
-                    name: postParameter.name,
-                    gender: postParameter.gender,
-                    birth: postParameter.birth,
-                    admission: postParameter.admission,
-                    classId: postParameter.classId,
-                    professional: postParameter.professional,
-                    department: postParameter.department
-                }
-                if (postParameter.age) {
-                    newModel.age = postParameter.age
-                }
-                if (postParameter.address) {
-                    newModel.address = postParameter.address
-                }
-                if (postParameter.telephone) {
-                    newModel.telephone = postParameter.telephone
-                }
-                // 增加事务
-                return Student.create(newModel).then((model) => {
-                    model.studentNo = model.generateStudentNo
-                    model.save()
-                    cb(null, model.toJSON())
-                }).catch((err) => {
-                    let error = Boom.badData('创建失败，请联系管理员');
-                    error.output.payload.code = 1004;
-                    error.output.payload.dbError = err;
-                    debug('create student err', err);
-                    cb(error)
-                })
-            },
-            // 创建学生账号
-            (targetModel, cb) => {
-                let newUser = {
-                    username: targetModel.idCardNo,
-                    password: setting.detaultPwd,
-                    targetId: targetModel.id,
-                    roleType: role.type.STUDENT
-                }
-                // 增加事务
-                return User.create(newUser).then(user => {
-                    let userJSON = user.toJSON()
-                    debug('用户---学生', userJSON)
-                    userJSON.baseInfo = targetModel
-                    cb(null, userJSON)
-                }).catch(function (err) {
-                    let error = Boom.badData('创建失败，请联系管理员');
-                    error.output.payload.code = 1005;
-                    error.output.payload.dbError = err;
-                    debug('create student-user err', error);
-                    cb(error)
-                })
-            }
-        ], (err, result) => {
-            if (err) {
-                reply(err)
-            } else {
-                reply(result)
-            }
-        })
-    },
     // 创建学生 => student和user同时成功才算成功
     create(request, reply) {
         db.transaction().then(t => {
@@ -236,7 +149,7 @@ const studentMethods = {
                 },
                 // 删除学生
                 (targetModel, cb) => {
-                    targetModel.destroy().then((delModel) => {
+                    targetModel.destroy({ transaction: t }).then((delModel) => {
                         if (!delModel) {
                             let error = Boom.badData('学生不存在');
                             error.output.payload.code = 1031;
@@ -288,7 +201,7 @@ const studentMethods = {
                         Student.findById(request.params.studentId).then((model) => {
                             // debug('查询到学生', model)
                             if (!model) {
-                                let error = Boom.notAcceptable('学生不存在');
+                                let error = Boom.badData('学生不存在');
                                 error.output.payload.code = 1044;
                                 cb(error);
                             } else {
