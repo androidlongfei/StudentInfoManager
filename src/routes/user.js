@@ -4,7 +4,7 @@ var Joi = require('joi');
 
 module.exports = (function () {
     return [{
-            // 登录路由
+            // 登录
             method: 'POST',
             path: '/login',
             config: {
@@ -43,7 +43,7 @@ module.exports = (function () {
             }
         },
         {
-            // 删除路由
+            // 删除用户
             method: 'DELETE',
             path: '/user/{userId}',
             config: {
