@@ -1,5 +1,5 @@
 import Hapi from 'hapi'
-import _ from 'underscore'
+// import _ from 'underscore'
 const jwt = require('jsonwebtoken');
 const Boom = require('boom');
 import doc from './lib/doc'
@@ -7,7 +7,7 @@ import doc from './lib/doc'
 import routes from './routes'
 import setting from './config/setting'
 import Table from './lib/db/table'
-import socketioHandle from './lib/socketioHandle'
+// import socketioHandle from './lib/socketioHandle'
 
 import createDebug from 'debug'
 const debug = createDebug('app:index')
@@ -16,12 +16,12 @@ const server = new Hapi.Server()
 
 server.connection({ port: setting.port })
 
-socketioHandle.onConnection(server.listener)
+// socketioHandle.onConnection(server.listener)
 
 // swagger文档插件
 server.register(doc)
 
-debug('routes:', routes)
+// debug('routes:', routes)
 
 // 跨域插件
 server.register({
@@ -40,45 +40,52 @@ server.register({
     }
 });
 
+// 白名单不需要token校验
+const whiteList = [
+    '/login', '/app', '/class', '/departments', '/professionals',
+    `${setting.routePrefix}/login`, `${setting.routePrefix}/app`,
+    `${setting.routePrefix}/class`, `${setting.routePrefix}/departments`,
+    `${setting.routePrefix}/professionals`
+]
+
+// 测试,不需要token
+const test = false
+
 // token校验,所有request请求先经过它
 server.ext({
     type: 'onRequest',
     method: function (request, reply) {
         let path = request.path
-        // let method = request.method
-        debug('----------onRequest!!!', path)
-        // 测试 UI
+        let method = request.method
+        debug('----------onRequest!!!', method, path)
+        // debug('in whiteList', whiteList.includes(path))
         if (path.indexOf('/documentation') > -1 || path.indexOf('/swagger') > -1) {
-            debug('test', request.headers.token)
-            return reply.continue();
-        } else if (path === '/login' || request.path === '/app' || request.path === '/class') {
+            // 测试 UI 不需要token
+            return reply.continue()
+        } else if (whiteList.includes(path)) {
             // 登录 ,不需要验证token
-            // debug('login', request.headers.token)
             request.headers.token = 'not token'
             return reply.continue()
-        } else if (path === `${setting.routePrefix}/login` ||
-            request.path === `${setting.routePrefix}/app` ||
-            request.path === `${setting.routePrefix}/class`) {
-            // 进入登陆流程
-            request.headers.token = 'not be verified!'
-            return reply.continue()
         } else {
-            let test = false
             if (test) {
                 return reply.continue();
+            }
+            if (method === 'options') {
+                // 跨域嗅探
+                return reply({ code: 200 })
             }
             let token = request.headers.token || request.query.token || request.headers['x-access-token'] || request.headers['accept'] || request.headers['content-type'] || request.headers['authorization']
             // debug('client token', token)
             // 解码token
             jwt.verify(token, setting.SECRET, (err, decoded) => {
-                // debug('decoded', decoded)
+                // debug('onRequest decoded =>', decoded)
                 if (err) {
-                    // debug('token失败--------', err)
+                    debug('验证token失败--------', err)
                     let error = Boom.unauthorized('身份验证失败！登录超时，请重新登录！')
-                    error.output.payload.code = 1001;
+                    error.output.payload.code = 50000;
                     reply(error)
                 } else {
-                    debug('token正确-------', decoded) // bar
+                    // debug('token正确-------', decoded)
                     request.user = decoded
                     request.auth.credentials = decoded
                     return reply.continue()
@@ -101,8 +108,6 @@ server.register(require('inert'), (err) => {
         }
     });
 })
-
-debug('test gulp 11')
 
 
 // 增加前缀
